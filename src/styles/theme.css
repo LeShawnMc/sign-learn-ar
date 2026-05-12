@@ -1,0 +1,358 @@
+@custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *));
+
+:root {
+  /* Typography */
+  --font-size: 16px;
+  
+  /* VR/AR Optimized Color System - Dark Theme Default */
+  /* Background Colors - Soft dark for reduced eye strain */
+  --vr-bg-primary: #0F0F23;        /* Deep navy background */
+  --vr-bg-secondary: #1A1A2E;      /* Slightly lighter navy */
+  --vr-bg-elevated: #252541;       /* Elevated surfaces */
+  --vr-bg-card: #1E1E3F;           /* Card background */
+  
+  /* Primary Colors - Bright and visible in VR */
+  --vr-primary: #00F5FF;           /* Bright cyan - highly visible */
+  --vr-primary-hover: #00D9E6;     /* Darker cyan for hover */
+  --vr-primary-light: rgba(0, 245, 255, 0.1);  /* Light cyan background */
+  
+  /* Secondary Colors */
+  --vr-secondary: #A78BFA;         /* Soft purple */
+  --vr-secondary-hover: #8B5CF6;   /* Darker purple */
+  --vr-secondary-light: rgba(167, 139, 250, 0.1);
+  
+  /* Accent Colors */
+  --vr-accent: #FF6B9D;            /* Coral pink - warm and friendly */
+  --vr-accent-hover: #FF527F;      /* Darker coral */
+  --vr-accent-light: rgba(255, 107, 157, 0.1);
+  
+  /* Feedback Colors - High visibility */
+  --vr-success: #10B981;           /* Emerald green */
+  --vr-success-light: rgba(16, 185, 129, 0.1);
+  --vr-warning: #F59E0B;           /* Amber */
+  --vr-warning-light: rgba(245, 158, 11, 0.1);
+  --vr-error: #EF4444;             /* Bright red */
+  --vr-error-light: rgba(239, 68, 68, 0.1);
+  --vr-info: #3B82F6;              /* Bright blue */
+  --vr-info-light: rgba(59, 130, 246, 0.1);
+  
+  /* Text Colors - Optimized for readability */
+  --vr-text-primary: #F8FAFC;      /* Off-white (not pure white) */
+  --vr-text-secondary: #94A3B8;    /* Medium gray with good contrast */
+  --vr-text-tertiary: #64748B;     /* Lighter gray for less important text */
+  --vr-text-disabled: #475569;     /* Disabled text */
+  
+  /* Border & Divider Colors */
+  --vr-border: rgba(148, 163, 184, 0.2);
+  --vr-border-hover: rgba(148, 163, 184, 0.4);
+  
+  /* Gradient Combinations */
+  --gradient-primary: linear-gradient(135deg, #00F5FF 0%, #A78BFA 100%);
+  --gradient-secondary: linear-gradient(135deg, #A78BFA 0%, #FF6B9D 100%);
+  --gradient-success: linear-gradient(135deg, #10B981 0%, #00F5FF 100%);
+  --gradient-premium: linear-gradient(135deg, #F59E0B 0%, #FF6B9D 100%);
+  
+  /* AR Hand Tracking Colors */
+  --ar-correct: rgba(16, 185, 129, 0.8);
+  --ar-almost: rgba(245, 158, 11, 0.8);
+  --ar-incorrect: rgba(239, 68, 68, 0.8);
+  
+  /* Legacy token mappings for compatibility */
+  --background: var(--vr-bg-primary);
+  --foreground: var(--vr-text-primary);
+  --card: var(--vr-bg-card);
+  --card-foreground: var(--vr-text-primary);
+  --popover: var(--vr-bg-elevated);
+  --popover-foreground: var(--vr-text-primary);
+  --primary: var(--vr-primary);
+  --primary-foreground: var(--vr-bg-primary);
+  --secondary: var(--vr-secondary);
+  --secondary-foreground: var(--vr-text-primary);
+  --muted: var(--vr-bg-elevated);
+  --muted-foreground: var(--vr-text-secondary);
+  --accent: var(--vr-accent);
+  --accent-foreground: var(--vr-text-primary);
+  --destructive: var(--vr-error);
+  --destructive-foreground: var(--vr-text-primary);
+  --border: var(--vr-border);
+  --input: transparent;
+  --input-background: var(--vr-bg-secondary);
+  --switch-background: var(--vr-bg-elevated);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --ring: var(--vr-primary);
+  --radius: 0.75rem;
+  
+  /* Chart colors */
+  --chart-1: var(--vr-primary);
+  --chart-2: var(--vr-secondary);
+  --chart-3: var(--vr-accent);
+  --chart-4: var(--vr-success);
+  --chart-5: var(--vr-warning);
+}
+
+/* Light Theme - Glassmorphism VR Optimized */
+.light {
+  /* Background Colors - Soft gradient base */
+  --vr-bg-primary: linear-gradient(135deg, #E0F2FE 0%, #EDE9FE 50%, #FCE7F3 100%);
+  --vr-bg-secondary: rgba(255, 255, 255, 0.7);      /* Frosted glass */
+  --vr-bg-elevated: rgba(255, 255, 255, 0.85);      /* More opaque glass */
+  --vr-bg-card: rgba(255, 255, 255, 0.6);           /* Card glass */
+  
+  /* Glassmorphism specific */
+  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-bg-strong: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: rgba(31, 38, 135, 0.15);
+  --glass-blur: 20px;
+  
+  /* Primary Colors - Vibrant but soft */
+  --vr-primary: #0EA5E9;           /* Sky blue 500 - vibrant on glass */
+  --vr-primary-hover: #0284C7;     /* Sky blue 600 */
+  --vr-primary-light: rgba(14, 165, 233, 0.12);
+  
+  /* Secondary Colors */
+  --vr-secondary: #8B5CF6;         /* Violet 500 */
+  --vr-secondary-hover: #7C3AED;   /* Violet 600 */
+  --vr-secondary-light: rgba(139, 92, 246, 0.12);
+  
+  /* Accent Colors */
+  --vr-accent: #EC4899;            /* Pink 500 */
+  --vr-accent-hover: #DB2777;      /* Pink 600 */
+  --vr-accent-light: rgba(236, 72, 153, 0.12);
+  
+  /* Feedback Colors */
+  --vr-success: #10B981;           /* Emerald 500 */
+  --vr-success-light: rgba(16, 185, 129, 0.12);
+  --vr-warning: #F59E0B;           /* Amber 500 */
+  --vr-warning-light: rgba(245, 158, 11, 0.12);
+  --vr-error: #EF4444;             /* Red 500 */
+  --vr-error-light: rgba(239, 68, 68, 0.12);
+  --vr-info: #3B82F6;              /* Blue 500 */
+  --vr-info-light: rgba(59, 130, 246, 0.12);
+  
+  /* Text Colors - High contrast for glass backgrounds */
+  --vr-text-primary: #0F172A;      /* Slate 900 - very dark for readability */
+  --vr-text-secondary: #334155;    /* Slate 700 */
+  --vr-text-tertiary: #64748B;     /* Slate 500 */
+  --vr-text-disabled: #94A3B8;     /* Slate 400 */
+  
+  /* Border & Divider Colors */
+  --vr-border: rgba(148, 163, 184, 0.3);
+  --vr-border-hover: rgba(148, 163, 184, 0.6);
+  
+  /* Gradients for Light Theme - Vibrant overlays */
+  --gradient-primary: linear-gradient(135deg, #0EA5E9 0%, #8B5CF6 100%);
+  --gradient-secondary: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+  --gradient-success: linear-gradient(135deg, #10B981 0%, #0EA5E9 100%);
+  --gradient-premium: linear-gradient(135deg, #F59E0B 0%, #EC4899 100%);
+  
+  /* Update legacy tokens */
+  --background: var(--vr-bg-primary);
+  --foreground: var(--vr-text-primary);
+  --card: var(--vr-bg-card);
+  --card-foreground: var(--vr-text-primary);
+  --popover: var(--vr-bg-elevated);
+  --popover-foreground: var(--vr-text-primary);
+  --primary: var(--vr-primary);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--vr-secondary);
+  --secondary-foreground: #FFFFFF;
+  --muted: var(--vr-bg-elevated);
+  --muted-foreground: var(--vr-text-secondary);
+  --accent: var(--vr-accent);
+  --accent-foreground: #FFFFFF;
+  --destructive: var(--vr-error);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--vr-border);
+  --input-background: var(--vr-bg-secondary);
+  --switch-background: rgba(148, 163, 184, 0.2);
+  --ring: var(--vr-primary);
+}
+
+.dark {
+  /* Dark mode uses same VR-optimized colors */
+  --background: var(--vr-bg-primary);
+  --foreground: var(--vr-text-primary);
+  --card: var(--vr-bg-card);
+  --card-foreground: var(--vr-text-primary);
+  --popover: var(--vr-bg-elevated);
+  --popover-foreground: var(--vr-text-primary);
+  --primary: var(--vr-primary);
+  --primary-foreground: var(--vr-bg-primary);
+  --secondary: var(--vr-secondary);
+  --secondary-foreground: var(--vr-text-primary);
+  --muted: var(--vr-bg-elevated);
+  --muted-foreground: var(--vr-text-secondary);
+  --accent: var(--vr-accent);
+  --accent-foreground: var(--vr-text-primary);
+  --destructive: var(--vr-error);
+  --destructive-foreground: var(--vr-text-primary);
+  --border: var(--vr-border);
+  --input: var(--vr-bg-elevated);
+  --ring: var(--vr-primary);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Brand Colors */
+  --color-cosmic-blue: var(--cosmic-blue);
+  --color-deep-purple: var(--deep-purple);
+  --color-electric-teal: var(--electric-teal);
+  --color-success-green: var(--success-green);
+  --color-warning-yellow: var(--warning-yellow);
+  --color-error-red: var(--error-red);
+  --color-info-blue: var(--info-blue);
+  --color-pure-white: var(--pure-white);
+  --color-off-white: var(--off-white);
+  --color-light-gray: var(--light-gray);
+  --color-medium-gray: var(--medium-gray);
+  --color-dark-gray: var(--dark-gray);
+  --color-near-black: var(--near-black);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /**
+  * Default typography styles using Inter and Poppins
+  */
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 36px;
+  }
+
+  h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 32px;
+  }
+
+  h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 28px;
+  }
+
+  h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 24px;
+  }
+
+  h5 {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 22px;
+  }
+
+  label {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+
+  button {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+  }
+
+  input {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+  }
+
+  p {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+  }
+
+  /* Display styles */
+  .text-display-xl {
+    font-family: 'Poppins', sans-serif;
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 64px;
+  }
+
+  .text-display-l {
+    font-family: 'Poppins', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 56px;
+  }
+
+  .text-display-m {
+    font-family: 'Poppins', sans-serif;
+    font-size: 40px;
+    font-weight: 600;
+    line-height: 48px;
+  }
+
+  .text-display-s {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+  }
+}
