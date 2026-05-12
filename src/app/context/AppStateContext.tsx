@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import type { AppState, OnboardingStep, Language } from '../types';
+import { supabase, saveProgress, loadProgress } from '../../lib/supabase';
 
 export const DEFAULT_STATE: AppState = {
   onboardingComplete: false,
@@ -47,6 +48,27 @@ export const DEFAULT_STATE: AppState = {
   notifications: [],
 };
 
+function loadLocalState(): AppState {
+  try {
+    const saved = localStorage.getItem('signlearn-state');
+    if (saved) {
+      const parsed = JSON.parse(saved) as AppState;
+      if (
+        typeof parsed.onboardingComplete !== 'boolean' ||
+        !parsed.userProgress ||
+        !Array.isArray(parsed.achievements)
+      ) {
+        localStorage.removeItem('signlearn-state');
+        return DEFAULT_STATE;
+      }
+      return { ...DEFAULT_STATE, ...parsed, userProgress: { ...DEFAULT_STATE.userProgress, ...parsed.userProgress } };
+    }
+  } catch {
+    localStorage.removeItem('signlearn-state');
+  }
+  return DEFAULT_STATE;
+}
+
 interface AppStateContextType {
   state: AppState;
   setState: React.Dispatch<React.SetStateAction<AppState>>;
@@ -55,19 +77,50 @@ interface AppStateContextType {
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AppState>(() => {
-    const saved = localStorage.getItem('signlearn-state');
-    if (saved) {
-      try { return JSON.parse(saved); } catch { /* fall through */ }
-    }
-    return DEFAULT_STATE;
-  });
+  const [state, setState] = useState<AppState>(loadLocalState);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ── Persist to localStorage on every change ───────────────────────────────
   useEffect(() => {
-    localStorage.setItem('signlearn-state', JSON.stringify(state));
+    try {
+      localStorage.setItem('signlearn-state', JSON.stringify(state));
+    } catch { /* quota exceeded or private mode */ }
   }, [state]);
 
-  // Reset daily progress on a new day
+  // ── Debounced save to Supabase (2 s after last change) ────────────────────
+  useEffect(() => {
+    if (!supabase) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      const { data } = await supabase!.auth.getSession();
+      const userId = data.session?.user?.id;
+      if (userId) {
+        saveProgress(userId, state).catch(() => { /* silent — local copy is always the backup */ });
+      }
+    }, 2000);
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [state]);
+
+  // ── Load from Supabase when user signs in ─────────────────────────────────
+  useEffect(() => {
+    if (!supabase) return;
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const remote = await loadProgress(session.user.id);
+        if (remote) {
+          // Remote wins if it has more progress (higher totalPoints)
+          setState(prev =>
+            (remote.userProgress?.totalPoints ?? 0) >= (prev.userProgress?.totalPoints ?? 0)
+              ? { ...DEFAULT_STATE, ...remote, userProgress: { ...DEFAULT_STATE.userProgress, ...remote.userProgress } }
+              : prev
+          );
+        }
+      }
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // ── Reset daily progress on a new day ─────────────────────────────────────
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     if (state.userProgress.lastActiveDate !== today) {

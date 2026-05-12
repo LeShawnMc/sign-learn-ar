@@ -14,6 +14,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
     lesson: BookOpen,
     reminder: Clock,
     social: Bell,
+    certificate: Trophy,
   };
 
   return (

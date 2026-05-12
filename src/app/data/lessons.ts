@@ -1,6 +1,12 @@
 import type { Lesson, Sign } from '../types';
 
-// Real sign language content for ASL
+// Video source: HandSpeak (handspeak.com) — ASL dictionary by a Deaf instructor.
+// These URLs are verified working MP4s (H.264, ~50–320 KB each).
+// LICENSE NOTE: For development/testing only. Obtain a proper content license
+// from HandSpeak (contact@handspeak.com) before launching publicly, or
+// self-host the videos with permission.
+const HS = (path: string) => `https://www.handspeak.com/word/${path}`;
+
 export const signs: Sign[] = [
   {
     id: 'hello',
@@ -8,6 +14,7 @@ export const signs: Sign[] = [
     description: 'Extend your hand with fingers together, palm facing forward. Move your hand away from your forehead in a small wave motion.',
     category: 'Greetings',
     difficulty: 'beginner',
+    videoUrl: HS('h/hel/hello.mp4'),
   },
   {
     id: 'thank-you',
@@ -15,6 +22,7 @@ export const signs: Sign[] = [
     description: 'Touch your fingers to your chin and then move your hand forward and down toward the person you are thanking.',
     category: 'Greetings',
     difficulty: 'beginner',
+    videoUrl: HS('t/tha/thank.mp4'),
   },
   {
     id: 'please',
@@ -22,6 +30,7 @@ export const signs: Sign[] = [
     description: 'Place your hand flat on your chest and move it in a circular motion.',
     category: 'Greetings',
     difficulty: 'beginner',
+    videoUrl: HS('p/ple/please.mp4'),
   },
   {
     id: 'sorry',
@@ -29,6 +38,7 @@ export const signs: Sign[] = [
     description: 'Make a fist with your dominant hand and rub it in a circular motion over your chest.',
     category: 'Greetings',
     difficulty: 'beginner',
+    videoUrl: HS('s/sor/sorry.mp4'),
   },
   {
     id: 'yes',
@@ -36,6 +46,7 @@ export const signs: Sign[] = [
     description: 'Make a fist and move it up and down like a nodding head.',
     category: 'Basic Responses',
     difficulty: 'beginner',
+    videoUrl: HS('y/yes/yes.mp4'),
   },
   {
     id: 'no',
@@ -43,6 +54,7 @@ export const signs: Sign[] = [
     description: 'Extend your index and middle fingers and thumb. Quickly snap them together.',
     category: 'Basic Responses',
     difficulty: 'beginner',
+    videoUrl: HS('n/no/no.mp4'),
   },
   {
     id: 'help',
@@ -50,6 +62,7 @@ export const signs: Sign[] = [
     description: 'Place your dominant fist on your non-dominant palm and lift both hands together.',
     category: 'Essential Words',
     difficulty: 'beginner',
+    videoUrl: HS('h/hel/help.mp4'),
   },
   {
     id: 'more',
@@ -57,6 +70,7 @@ export const signs: Sign[] = [
     description: 'Bring your fingertips together and tap them twice.',
     category: 'Essential Words',
     difficulty: 'beginner',
+    videoUrl: HS('m/mor/more.mp4'),
   },
   {
     id: 'water',
@@ -64,6 +78,7 @@ export const signs: Sign[] = [
     description: 'Make a "W" sign with three fingers and tap your chin twice.',
     category: 'Food & Drink',
     difficulty: 'beginner',
+    videoUrl: HS('w/wat/water.mp4'),
   },
   {
     id: 'food',
@@ -71,6 +86,7 @@ export const signs: Sign[] = [
     description: 'Bring your fingertips to your mouth repeatedly.',
     category: 'Food & Drink',
     difficulty: 'beginner',
+    videoUrl: HS('f/foo/food.mp4'),
   },
   {
     id: 'family',
@@ -78,6 +94,7 @@ export const signs: Sign[] = [
     description: 'Make "F" signs with both hands and circle them around each other.',
     category: 'Relationships',
     difficulty: 'intermediate',
+    videoUrl: HS('f/fam/family.mp4'),
   },
   {
     id: 'friend',
@@ -85,6 +102,7 @@ export const signs: Sign[] = [
     description: 'Hook your index fingers together, then reverse the position.',
     category: 'Relationships',
     difficulty: 'intermediate',
+    videoUrl: HS('f/fri/friend.mp4'),
   },
   {
     id: 'love',
@@ -92,6 +110,7 @@ export const signs: Sign[] = [
     description: 'Cross both fists over your heart.',
     category: 'Emotions',
     difficulty: 'intermediate',
+    videoUrl: HS('l/lov/love.mp4'),
   },
   {
     id: 'happy',
@@ -99,6 +118,7 @@ export const signs: Sign[] = [
     description: 'Brush your hand upward on your chest twice in a circular motion.',
     category: 'Emotions',
     difficulty: 'beginner',
+    videoUrl: HS('h/hap/happy.mp4'),
   },
   {
     id: 'sad',
@@ -106,6 +126,7 @@ export const signs: Sign[] = [
     description: 'Move both hands down in front of your face with a drooping motion.',
     category: 'Emotions',
     difficulty: 'beginner',
+    videoUrl: HS('s/sad/sad.mp4'),
   },
   {
     id: 'learn',
@@ -113,6 +134,7 @@ export const signs: Sign[] = [
     description: 'Place your open hand on your forehead and then close it as you move it away.',
     category: 'Education',
     difficulty: 'intermediate',
+    videoUrl: HS('l/lea/learn.mp4'),
   },
   {
     id: 'teach',
@@ -120,6 +142,7 @@ export const signs: Sign[] = [
     description: 'Move both hands from your forehead forward twice.',
     category: 'Education',
     difficulty: 'intermediate',
+    videoUrl: HS('t/tea/teach.mp4'),
   },
   {
     id: 'work',
@@ -127,6 +150,7 @@ export const signs: Sign[] = [
     description: 'Tap your dominant fist on top of your non-dominant fist twice.',
     category: 'Daily Life',
     difficulty: 'intermediate',
+    videoUrl: HS('w/wor/work.mp4'),
   },
   {
     id: 'home',
@@ -134,6 +158,7 @@ export const signs: Sign[] = [
     description: 'Touch your fingers to your mouth then to your cheek.',
     category: 'Places',
     difficulty: 'beginner',
+    videoUrl: HS('h/hom/home.mp4'),
   },
   {
     id: 'school',
@@ -141,6 +166,7 @@ export const signs: Sign[] = [
     description: 'Clap your hands twice.',
     category: 'Places',
     difficulty: 'beginner',
+    videoUrl: HS('s/sch/school.mp4'),
   },
 ];
 

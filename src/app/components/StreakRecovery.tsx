@@ -236,17 +236,17 @@ export function StreakRecovery({ onExit, previousStreak = 18 }: StreakRecoveryPr
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -268,7 +268,7 @@ export function StreakRecovery({ onExit, previousStreak = 18 }: StreakRecoveryPr
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -583,7 +583,7 @@ export function StreakRecovery({ onExit, previousStreak = 18 }: StreakRecoveryPr
                   className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{ background: colors.iconColor }}
                 >
-                  <Play className="w-6 h-6" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />
+                  <Play className="w-6 h-6" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold mb-1" style={{ color: colors.textPrimary }}>
@@ -1027,7 +1027,7 @@ export function StreakRecovery({ onExit, previousStreak = 18 }: StreakRecoveryPr
                     className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
                     style={{ background: colors.iconColor }}
                   >
-                    <Play className="w-10 h-10" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />
+                    <Play className="w-10 h-10" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />
                   </div>
                   <div className="text-4xl font-bold mb-2" style={{ color: colors.iconColor }}>
                     {adCountdown}s
@@ -1043,7 +1043,7 @@ export function StreakRecovery({ onExit, previousStreak = 18 }: StreakRecoveryPr
                   className="w-full h-12 rounded-xl font-semibold"
                   style={{ 
                     background: adCountdown > 0 ? colors.border : colors.iconColor,
-                    color: adCountdown > 0 ? colors.textTertiary : (theme === 'dark' ? '#0F0F23' : '#FFFFFF'),
+                    color: adCountdown > 0 ? colors.textTertiary : (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF'),
                     cursor: adCountdown > 0 ? 'not-allowed' : 'pointer',
                   }}
                   aria-label="Start watching ad"
@@ -1544,7 +1544,7 @@ export function StreakRecovery({ onExit, previousStreak = 18 }: StreakRecoveryPr
                       className="aspect-square rounded-lg text-sm font-bold"
                       style={{
                         background: idx < 5 ? colors.iconColor : colors.border,
-                        color: idx < 5 ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textTertiary,
+                        color: idx < 5 ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textTertiary,
                       }}
                       aria-label={`Toggle ${day}`}
                       aria-pressed={idx < 5}

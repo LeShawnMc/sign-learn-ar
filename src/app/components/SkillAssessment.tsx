@@ -348,17 +348,17 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -380,7 +380,7 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -586,7 +586,7 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
                 className="w-full h-12 rounded-xl font-semibold mb-3"
                 style={{ 
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Begin assessment"
               >
@@ -776,7 +776,7 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
                         className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ 
                           background: selectedAnswer === idx ? colors.iconColor : colors.border,
-                          color: selectedAnswer === idx ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textTertiary,
+                          color: selectedAnswer === idx ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textTertiary,
                         }}
                       >
                         {selectedAnswer === idx ? <Check className="w-4 h-4" /> : <span className="text-xs font-bold">{String.fromCharCode(65 + idx)}</span>}
@@ -817,7 +817,7 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
                 className="w-full h-12 rounded-xl font-semibold"
                 style={{ 
                   background: selectedAnswer !== null ? colors.iconColor : colors.border,
-                  color: selectedAnswer !== null ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textTertiary,
+                  color: selectedAnswer !== null ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textTertiary,
                   cursor: selectedAnswer !== null ? 'pointer' : 'not-allowed',
                 }}
                 aria-label={currentQuestion < questions.length - 1 ? 'Next question' : 'Continue to next section'}
@@ -1180,7 +1180,7 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
                     className="flex-1 h-11 rounded-xl font-semibold"
                     style={{ 
                       background: colors.iconColor,
-                      color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                      color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                     }}
                     aria-label="View certificate"
                   >
@@ -1460,7 +1460,7 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
                 className="w-full h-12 rounded-xl font-semibold"
                 style={{ 
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Confirm assessment schedule"
               >
@@ -1550,7 +1550,7 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
                 />
                 <button
                   className="p-2 rounded-lg"
-                  style={{ background: colors.iconColor, color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}
+                  style={{ background: colors.iconColor, color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}
                   aria-label="Copy link"
                 >
                   <Copy className="w-4 h-4" />
@@ -1578,7 +1578,7 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
               className="w-full h-12 rounded-xl font-semibold"
               style={{ 
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
               }}
               aria-label="Share results"
             >
@@ -1646,7 +1646,7 @@ export function SkillAssessment({ onExit }: SkillAssessmentProps) {
               </p>
 
               <div className="text-2xl font-bold mb-6" style={{ color: colors.iconColor }}>
-                {userProgress?.name || 'Student Name'}
+                {'Student Name'}
               </div>
 
               <p className="text-base mb-4" style={{ color: colors.textSecondary }}>

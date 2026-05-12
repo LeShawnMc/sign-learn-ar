@@ -612,17 +612,17 @@ export function ConversationScenarios({ onExit }: ConversationScenariosProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -644,7 +644,7 @@ export function ConversationScenarios({ onExit }: ConversationScenariosProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -787,7 +787,7 @@ export function ConversationScenarios({ onExit }: ConversationScenariosProps) {
                 className="h-10 px-3 rounded-xl"
                 style={{ 
                   background: showFilters ? colors.iconColor : colors.iconBg,
-                  color: showFilters ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.iconColor,
+                  color: showFilters ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.iconColor,
                 }}
                 aria-label="Toggle filters"
                 aria-pressed={showFilters}
@@ -823,7 +823,7 @@ export function ConversationScenarios({ onExit }: ConversationScenariosProps) {
                       className="flex-1 h-8 rounded-lg text-xs font-medium"
                       style={{
                         background: filterDifficulty === level ? colors.iconColor : colors.border,
-                        color: filterDifficulty === level ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textTertiary,
+                        color: filterDifficulty === level ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textTertiary,
                       }}
                       aria-label={`Filter by ${level}`}
                       aria-pressed={filterDifficulty === level}
@@ -1498,7 +1498,7 @@ export function ConversationScenarios({ onExit }: ConversationScenariosProps) {
                   className="w-full h-11 rounded-xl font-semibold"
                   style={{ 
                     background: colors.iconColor,
-                    color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                    color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                   }}
                   aria-label={`Start ${collection.name}`}
                 >

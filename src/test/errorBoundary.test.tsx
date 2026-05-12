@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+// @ts-expect-error – screen/fireEvent are re-exported via @testing-library/dom at runtime
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ErrorBoundary } from '../app/components/ErrorBoundary';
 

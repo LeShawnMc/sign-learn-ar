@@ -305,17 +305,17 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -337,7 +337,7 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -472,7 +472,7 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
                 style={{
                   background: activeTab === tab.id ? colors.iconColor : colors.cardBg,
                   color: activeTab === tab.id 
-                    ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                    ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                     : colors.textPrimary,
                   border: colors.glassBorder,
                 }}
@@ -490,7 +490,7 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
                         ? (theme === 'dark' ? 'rgba(15, 15, 35, 0.3)' : 'rgba(255, 255, 255, 0.3)')
                         : colors.errorBg,
                       color: activeTab === tab.id 
-                        ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                        ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                         : colors.errorColor,
                     }}
                     aria-label={`${tab.count} ${tab.label.toLowerCase()}`}
@@ -608,7 +608,7 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
                       className="h-9 rounded-full text-xs font-semibold"
                       style={{
                         background: colors.iconColor,
-                        color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                        color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                       }}
                       aria-label={`View ${friend.name}'s profile`}
                     >
@@ -660,7 +660,7 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
                 className="h-10 px-6 rounded-full font-semibold"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Find practice partners"
               >
@@ -939,7 +939,7 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
                       className="h-10 rounded-full font-semibold"
                       style={{
                         background: colors.iconColor,
-                        color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                        color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                       }}
                       aria-label={`Send friend request to ${partner.name}`}
                     >
@@ -1116,7 +1116,7 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
                     className="w-full h-10 rounded-full font-semibold"
                     style={{
                       background: colors.iconColor,
-                      color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                      color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                     }}
                     aria-label="Continue challenge"
                   >
@@ -1259,7 +1259,7 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
                     className="h-10 rounded-full font-semibold"
                     style={{
                       background: colors.iconColor,
-                      color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                      color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                     }}
                     aria-label={`Challenge ${selectedFriend.name}`}
                   >
@@ -1380,7 +1380,7 @@ export function FriendsConnections({ onExit }: FriendsConnectionsProps) {
                 className="w-full h-12 rounded-full font-semibold"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label={`Send ${selectedChallengeType} challenge to ${selectedFriend.name}`}
               >

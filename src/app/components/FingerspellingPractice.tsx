@@ -76,15 +76,15 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 146, 60, 0.1)',
@@ -114,7 +114,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
 
   // Timer for speed drill
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     if (isTimerActive && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
@@ -323,7 +323,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
           <motion.div
             className="rounded-xl p-5 mb-6"
             style={{
-              background: `linear-gradient(135deg, ${theme === 'dark' ? '#00F5FF' : '#0EA5E9'} 0%, ${theme === 'dark' ? '#A78BFA' : '#8B5CF6'} 100%)`,
+              background: `linear-gradient(135deg, ${theme === 'dark' ? 'var(--color-cyan)' : '#0EA5E9'} 0%, ${theme === 'dark' ? '#A78BFA' : '#8B5CF6'} 100%)`,
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -332,19 +332,19 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                <h2 className="text-lg font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                   Your Progress
                 </h2>
                 <p className="text-sm" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)' }}>
                   Keep practicing to improve!
                 </p>
               </div>
-              <Trophy className="w-10 h-10" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} aria-hidden="true" />
+              <Trophy className="w-10 h-10" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} aria-hidden="true" />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <div className="text-2xl font-bold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                <div className="text-2xl font-bold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                   {completedLetters.length}
                 </div>
                 <div className="text-xs" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>
@@ -352,7 +352,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-bold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                <div className="text-2xl font-bold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                   {score}
                 </div>
                 <div className="text-xs" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>
@@ -360,7 +360,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-bold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                <div className="text-2xl font-bold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                   {streak}
                 </div>
                 <div className="text-xs" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>
@@ -532,15 +532,15 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
               <div 
                 className="rounded-2xl p-8 mb-6 text-center"
                 style={{
-                  background: `linear-gradient(135deg, ${theme === 'dark' ? '#A78BFA' : '#8B5CF6'} 0%, ${theme === 'dark' ? '#00F5FF' : '#0EA5E9'} 100%)`,
+                  background: `linear-gradient(135deg, ${theme === 'dark' ? '#A78BFA' : '#8B5CF6'} 0%, ${theme === 'dark' ? 'var(--color-cyan)' : '#0EA5E9'} 100%)`,
                 }}
                 role="region"
                 aria-label={`Letter ${currentLetter.letter}`}
               >
-                <div className="text-8xl font-bold mb-4" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                <div className="text-8xl font-bold mb-4" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                   {currentLetter.letter}
                 </div>
-                <div className="text-lg font-semibold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                <div className="text-lg font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                   Letter {currentLetter.letter}
                 </div>
               </div>
@@ -651,7 +651,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
               className="flex-1 h-12 rounded-full font-semibold"
               style={{
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 opacity: currentLetterIndex === aslAlphabet.length - 1 ? 0.5 : 1,
               }}
               aria-label="Next letter"
@@ -779,7 +779,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                 className="h-14 px-8 rounded-full font-semibold text-lg"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Start speed drill"
               >
@@ -800,7 +800,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                   background: `linear-gradient(135deg, ${theme === 'dark' ? '#FB923C' : '#F97316'} 0%, ${theme === 'dark' ? '#F59E0B' : '#F59E0B'} 100%)`,
                 }}
               >
-                <div className="text-5xl font-bold tracking-wider" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                <div className="text-5xl font-bold tracking-wider" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                   {currentWord}
                 </div>
               </div>
@@ -837,7 +837,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                 className="w-full h-12 rounded-full font-semibold"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Submit word"
               >
@@ -881,7 +881,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                 className="h-12 px-8 rounded-full font-semibold"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Try again"
               >
@@ -984,7 +984,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                 background: `linear-gradient(135deg, ${theme === 'dark' ? '#3B82F6' : '#2563EB'} 0%, ${theme === 'dark' ? '#1D4ED8' : '#1E40AF'} 100%)`,
               }}
             >
-              <div className="text-5xl font-bold tracking-wider" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+              <div className="text-5xl font-bold tracking-wider" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                 {currentWord}
               </div>
             </div>
@@ -1042,7 +1042,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                 style={{
                   background: userInput.length === currentWord.length ? colors.iconColor : colors.cardBg,
                   color: userInput.length === currentWord.length 
-                    ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                    ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                     : colors.textSecondary,
                   opacity: userInput.length !== currentWord.length ? 0.5 : 1,
                 }}
@@ -1210,7 +1210,7 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                       exit={{ opacity: 0, scale: 0.8, rotateY: 90 }}
                       transition={{ duration: 0.4 }}
                       className="text-9xl font-bold"
-                      style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}
+                      style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}
                     >
                       {currentDisplayLetter}
                     </motion.div>
@@ -1220,8 +1220,8 @@ export function FingerspellingPractice({ onExit }: FingerspellingPracticeProps) 
                       animate={{ opacity: 1, scale: 1 }}
                       className="text-center"
                     >
-                      <Check className="w-20 h-20 mx-auto mb-4" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} aria-hidden="true" />
-                      <p className="text-2xl font-bold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                      <Check className="w-20 h-20 mx-auto mb-4" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} aria-hidden="true" />
+                      <p className="text-2xl font-bold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                         Complete!
                       </p>
                     </motion.div>

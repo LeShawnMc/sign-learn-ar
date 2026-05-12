@@ -20,12 +20,12 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
 
   const colors = theme === 'dark' 
     ? {
-        bg: '#1A1A2E',
+        bg: 'var(--color-bg-elevated)',
         border: 'rgba(148, 163, 184, 0.2)',
-        activeColor: '#00F5FF',
+        activeColor: 'var(--color-cyan)',
         inactiveColor: '#64748B',
-        centerBg: 'linear-gradient(135deg, #00F5FF 0%, #A78BFA 100%)',
-        centerIcon: '#0F0F23',
+        centerBg: 'linear-gradient(135deg, var(--color-cyan) 0%, #A78BFA 100%)',
+        centerIcon: 'var(--color-bg-deep)',
         blur: 'none',
       }
     : {

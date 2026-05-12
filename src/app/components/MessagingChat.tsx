@@ -17,7 +17,7 @@ interface Message {
   content: string;
   timestamp: string;
   isOwn?: boolean;
-  type: 'text' | 'vocabulary' | 'lesson' | 'image';
+  type?: 'text' | 'vocabulary' | 'lesson' | 'image';
   sharedContent?: {
     title: string;
     description?: string;
@@ -380,17 +380,17 @@ export function MessagingChat({ onExit }: MessagingChatProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -398,8 +398,8 @@ export function MessagingChat({ onExit }: MessagingChatProps) {
         errorBg: 'rgba(239, 68, 68, 0.1)',
         errorColor: '#EF4444',
         messageBg: '#252541',
-        ownMessageBg: '#00F5FF',
-        ownMessageText: '#0F0F23',
+        ownMessageBg: 'var(--color-cyan)',
+        ownMessageText: 'var(--color-bg-deep)',
         blur: 'none',
         shadow: 'none',
         glassBorder: 'none',
@@ -415,7 +415,7 @@ export function MessagingChat({ onExit }: MessagingChatProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -598,7 +598,7 @@ export function MessagingChat({ onExit }: MessagingChatProps) {
                         {conversation.unreadCount > 0 && (
                           <span 
                             className="px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0"
-                            style={{ background: colors.iconColor, color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}
+                            style={{ background: colors.iconColor, color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}
                             aria-label={`${conversation.unreadCount} unread`}
                           >
                             {conversation.unreadCount}
@@ -798,7 +798,7 @@ export function MessagingChat({ onExit }: MessagingChatProps) {
                                 : colors.iconColor,
                               color: message.isOwn 
                                 ? colors.ownMessageText 
-                                : (theme === 'dark' ? '#0F0F23' : '#FFFFFF'),
+                                : (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF'),
                             }}
                             aria-label={`View ${message.type}`}
                           >
@@ -921,7 +921,7 @@ export function MessagingChat({ onExit }: MessagingChatProps) {
                 style={{
                   background: messageInput.trim() ? colors.iconColor : colors.cardBg,
                   color: messageInput.trim() 
-                    ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                    ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                     : colors.textTertiary,
                 }}
                 disabled={!messageInput.trim()}
@@ -976,7 +976,7 @@ export function MessagingChat({ onExit }: MessagingChatProps) {
             {/* Main Video (Partner) */}
             <div 
               className="w-full h-full flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #1E1E3F 0%, #252541 100%)' }}
+              style={{ background: 'linear-gradient(135deg, var(--color-bg-card) 0%, #252541 100%)' }}
             >
               <div className="text-center">
                 <div 
@@ -995,7 +995,7 @@ export function MessagingChat({ onExit }: MessagingChatProps) {
             <div 
               className="absolute top-4 right-4 w-32 h-24 rounded-xl overflow-hidden"
               style={{
-                background: 'linear-gradient(135deg, #00F5FF 0%, #A855F7 100%)',
+                background: 'linear-gradient(135deg, var(--color-cyan) 0%, var(--color-purple) 100%)',
                 border: '2px solid rgba(255, 255, 255, 0.2)',
               }}
             >

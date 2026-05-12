@@ -20,7 +20,7 @@ export function CourseCertificate({ onExit }: CourseCertificateProps) {
   const colors = {
     background: theme === 'dark' ? '#0A0A1A' : '#F5F7FA',
     cardBg: theme === 'dark' ? 'rgba(20, 20, 40, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-    textPrimary: theme === 'dark' ? '#FFFFFF' : '#1A1A2E',
+    textPrimary: theme === 'dark' ? '#FFFFFF' : 'var(--color-bg-elevated)',
     textSecondary: theme === 'dark' ? '#B8B8D0' : '#6B7280',
     border: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
     accent: theme === 'dark' ? '#6366F1' : '#4F46E5',

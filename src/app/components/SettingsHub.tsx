@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from './ui/button';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../../lib/AuthContext';
 import { 
   X, 
   User,
@@ -65,6 +66,7 @@ export function SettingsHub({
 }: SettingsHubProps) {
   const { theme, toggleTheme } = useTheme();
   const { userProgress, selectedLanguage } = useApp();
+  const { logout, user, mode } = useAuth();
 
   // App Preferences State
   const [autoPlayVideos, setAutoPlayVideos] = useState(true);
@@ -88,17 +90,17 @@ export function SettingsHub({
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -120,7 +122,7 @@ export function SettingsHub({
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -133,7 +135,7 @@ export function SettingsHub({
       };
 
   const handleLogout = () => {
-    // Simulate logout
+    logout();
   };
 
   const handleDeleteAccount = () => {
@@ -217,13 +219,15 @@ export function SettingsHub({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold mb-1" style={{ color: colors.textPrimary }}>
-                  Sarah Johnson
+                  {user?.email?.split('@')[0] ?? 'Guest'}
                 </div>
                 <div className="text-sm mb-1" style={{ color: colors.textSecondary }}>
-                  sarah.johnson@email.com
+                  {mode === 'authenticated' ? user?.email : 'Not signed in'}
                 </div>
                 <div className="flex items-center gap-2 text-xs" style={{ color: colors.textTertiary }}>
-                  {userProgress.isPremium ? (
+                  {mode === 'guest' ? (
+                    <span style={{ color: 'var(--color-text-muted)' }}>Guest — progress saved locally only</span>
+                  ) : userProgress.isPremium ? (
                     <>
                       <Crown className="w-4 h-4" style={{ color: colors.warningColor }} aria-hidden="true" />
                       <span>Premium Member</span>

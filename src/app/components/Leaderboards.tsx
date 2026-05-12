@@ -523,17 +523,17 @@ export function Leaderboards({ onExit }: LeaderboardsProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -543,7 +543,7 @@ export function Leaderboards({ onExit }: LeaderboardsProps) {
         goldBg: 'rgba(251, 191, 36, 0.15)',
         goldColor: '#FBD500',
         silverBg: 'rgba(148, 163, 184, 0.15)',
-        silverColor: '#94A3B8',
+        silverColor: 'var(--color-text-muted)',
         bronzeBg: 'rgba(205, 127, 50, 0.15)',
         bronzeColor: '#CD7F32',
         blur: 'none',
@@ -561,7 +561,7 @@ export function Leaderboards({ onExit }: LeaderboardsProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -696,7 +696,7 @@ export function Leaderboards({ onExit }: LeaderboardsProps) {
                 style={{
                   background: activeBoard === board.id ? colors.iconColor : colors.cardBg,
                   color: activeBoard === board.id 
-                    ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                    ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                     : colors.textPrimary,
                   border: colors.glassBorder,
                 }}
@@ -749,11 +749,11 @@ export function Leaderboards({ onExit }: LeaderboardsProps) {
                 <TrendingUp 
                   className="w-4 h-4" 
                   style={{ 
-                    transform: currentUser.change < 0 ? 'rotate(180deg)' : 'none',
+                    transform: (currentUser.change ?? 0) < 0 ? 'rotate(180deg)' : 'none',
                   }} 
                   aria-hidden="true"
                 />
-                {Math.abs(currentUser.change)} {currentUser.change > 0 ? 'up' : 'down'}
+                {Math.abs(currentUser.change ?? 0)} {(currentUser.change ?? 0) > 0 ? 'up' : 'down'}
               </div>
             )}
           </div>
@@ -903,7 +903,7 @@ export function Leaderboards({ onExit }: LeaderboardsProps) {
                   style={{ 
                     background: entry.isCurrentUser ? colors.iconColor : colors.iconBg,
                     color: entry.isCurrentUser 
-                      ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                      ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                       : colors.iconColor,
                   }}
                   aria-hidden="true"
@@ -1086,7 +1086,7 @@ export function Leaderboards({ onExit }: LeaderboardsProps) {
                       className="h-10 rounded-full font-semibold"
                       style={{
                         background: colors.iconColor,
-                        color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                        color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                       }}
                       aria-label={`Add ${selectedUser.name} as friend`}
                     >

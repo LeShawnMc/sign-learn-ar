@@ -17,6 +17,12 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
+  componentDidCatch(error: Error, info: { componentStack: string }) {
+    // Always log to console so DevTools shows the real error
+    // eslint-disable-next-line no-console
+    console.error('[ErrorBoundary]', error, info.componentStack);
+  }
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
@@ -29,32 +35,38 @@ export class ErrorBoundary extends Component<Props, State> {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            height: '100%',
+            minHeight: '100dvh',
             padding: '2rem',
             textAlign: 'center',
-            color: 'var(--color-foreground)',
+            background: '#0F0F23',
+            color: '#F8FAFC',
           }}
         >
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>⚠️</div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem', color: '#F8FAFC' }}>
             Something went wrong
           </h2>
-          <p style={{ fontSize: '0.875rem', opacity: 0.7, marginBottom: '1.5rem' }}>
+          <p style={{ fontSize: '0.875rem', color: '#94A3B8', marginBottom: '1.5rem', maxWidth: 320 }}>
             {this.state.error?.message ?? 'An unexpected error occurred.'}
           </p>
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
             style={{
-              padding: '0.5rem 1.25rem',
+              padding: '0.5rem 1.5rem',
               borderRadius: '0.5rem',
-              background: 'var(--color-primary, #4169E1)',
+              background: '#4169E1',
               color: '#fff',
               border: 'none',
               cursor: 'pointer',
-              fontWeight: 500,
+              fontWeight: 600,
+              fontSize: '0.875rem',
             }}
           >
             Try again
           </button>
+          <p style={{ fontSize: '0.75rem', color: '#475569', marginTop: '1.5rem' }}>
+            Open DevTools → Console for full details
+          </p>
         </div>
       );
     }

@@ -57,6 +57,20 @@
   --ar-correct: rgba(16, 185, 129, 0.8);
   --ar-almost: rgba(245, 158, 11, 0.8);
   --ar-incorrect: rgba(239, 68, 68, 0.8);
+
+  /* Brand Colors */
+  --color-brand: #4169E1;       /* Cosmic Blue — primary actions */
+  --color-premium: #7B3FF2;     /* Deep Purple — premium features */
+  --color-ar-teal: #00D9C0;     /* Electric Teal — AR elements & success */
+  --color-gold: #FFD700;        /* Gold — rewards & achievements */
+  --color-purple: #A855F7;      /* Vivid Purple — accents */
+  --color-danger: #FF6B6B;      /* Soft Red — warnings & errors */
+  --color-bg-deep: #0F0F23;     /* Deep navy — primary background */
+  --color-bg-card: #1E1E3F;     /* Card background */
+  --color-bg-elevated: #1A1A2E; /* Elevated surface */
+  --color-text: #F8FAFC;        /* Primary text */
+  --color-text-muted: #94A3B8;  /* Secondary text */
+  --color-cyan: #00F5FF;        /* Bright cyan — VR primary */
   
   /* Legacy token mappings for compatibility */
   --background: var(--vr-bg-primary);

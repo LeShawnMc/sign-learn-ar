@@ -118,29 +118,29 @@ export function DetailedAnalytics({ onExit }: DetailedAnalyticsProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
         warningColor: '#FBD500',
         errorBg: 'rgba(239, 68, 68, 0.1)',
         errorColor: '#EF4444',
-        chartBar: '#00F5FF',
-        chartBarSecondary: '#A855F7',
-        streakNone: '#1E1E3F',
+        chartBar: 'var(--color-cyan)',
+        chartBarSecondary: 'var(--color-purple)',
+        streakNone: 'var(--color-bg-card)',
         streakLight: 'rgba(0, 245, 255, 0.3)',
         streakMedium: 'rgba(0, 245, 255, 0.6)',
-        streakHigh: '#00F5FF',
+        streakHigh: 'var(--color-cyan)',
         blur: 'none',
         shadow: 'none',
         glassBorder: 'none',
@@ -156,7 +156,7 @@ export function DetailedAnalytics({ onExit }: DetailedAnalyticsProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -263,7 +263,7 @@ export function DetailedAnalytics({ onExit }: DetailedAnalyticsProps) {
               style={{
                 background: timeRange === range ? colors.iconColor : colors.cardBg,
                 color: timeRange === range 
-                  ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                  ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                   : colors.textPrimary,
                 border: colors.glassBorder,
               }}
@@ -784,7 +784,7 @@ export function DetailedAnalytics({ onExit }: DetailedAnalyticsProps) {
                               minWidth: '60px',
                             }}
                           >
-                            <span className="text-xs font-bold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                            <span className="text-xs font-bold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                               {metric.you}
                             </span>
                           </div>
@@ -907,7 +907,7 @@ export function DetailedAnalytics({ onExit }: DetailedAnalyticsProps) {
                         className="px-3 py-1 rounded-full text-sm font-medium"
                         style={{ 
                           background: colors.iconColor,
-                          color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                          color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                         }}
                       >
                         {day}

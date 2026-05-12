@@ -14,7 +14,7 @@ import {
   TrendingUp,
   Award,
   Target,
-  Infinity,
+  Infinity as InfinityIcon,
   Video,
   BookOpen,
   MessageCircle,
@@ -772,7 +772,7 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
           <h3 className="text-lg font-semibold mb-4">What's Included</h3>
           <div className="space-y-3">
             {[
-              { icon: <Infinity className="w-5 h-5" />, text: 'Unlimited lessons and practice sessions', color: 'text-blue-500' },
+              { icon: <InfinityIcon className="w-5 h-5" />, text: 'Unlimited lessons and practice sessions', color: 'text-blue-500' },
               { icon: <Users className="w-5 h-5" />, text: 'Social practice rooms with live learners', color: 'text-purple-500' },
               { icon: <Globe className="w-5 h-5" />, text: 'All sign languages (ASL, BSL, ISL, LSF)', color: 'text-green-500' },
               { icon: <Video className="w-5 h-5" />, text: 'Full AR features with hand tracking', color: 'text-orange-500' },

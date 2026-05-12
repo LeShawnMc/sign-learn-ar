@@ -37,8 +37,10 @@ export function WelcomeScreen() {
       </motion.div>
 
       {/* Features List */}
-      <motion.div 
+      <motion.div
         className="w-full max-w-md mb-8 space-y-4"
+        role="list"
+        aria-label="Key features"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.6 }}
@@ -50,11 +52,11 @@ export function WelcomeScreen() {
             </svg>
           </div>
           <div>
-            <h3 className="font-semibold">AR Hand Tracking</h3>
+            <h2 className="font-semibold text-base">AR Hand Tracking</h2>
             <p className="text-sm text-gray-400">Real-time feedback on your signing</p>
           </div>
         </div>
-        
+
         <div className="flex items-start gap-3" role="listitem">
           <div className="mt-1 w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -62,11 +64,11 @@ export function WelcomeScreen() {
             </svg>
           </div>
           <div>
-            <h3 className="font-semibold">Personalized Learning</h3>
+            <h2 className="font-semibold text-base">Personalized Learning</h2>
             <p className="text-sm text-gray-400">Lessons tailored to your goals</p>
           </div>
         </div>
-        
+
         <div className="flex items-start gap-3" role="listitem">
           <div className="mt-1 w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -74,7 +76,7 @@ export function WelcomeScreen() {
             </svg>
           </div>
           <div>
-            <h3 className="font-semibold">Daily Progress Tracking</h3>
+            <h2 className="font-semibold text-base">Daily Progress Tracking</h2>
             <p className="text-sm text-gray-400">Build streaks and achieve goals</p>
           </div>
         </div>
@@ -95,7 +97,7 @@ export function WelcomeScreen() {
           Get Started
         </Button>
         
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="text-center text-sm text-gray-400 mt-4">
           Free to start • No credit card required
         </p>
       </motion.div>

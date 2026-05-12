@@ -430,15 +430,15 @@ export function StoryMode({ onExit, onUpgrade }: StoryModeProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 146, 60, 0.1)',
@@ -859,7 +859,7 @@ export function StoryMode({ onExit, onUpgrade }: StoryModeProps) {
                     {character?.avatar}
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-xl font-bold mb-1" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                    <h2 className="text-xl font-bold mb-1" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                       {character?.name}
                     </h2>
                     <p className="text-sm" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)' }}>
@@ -875,7 +875,7 @@ export function StoryMode({ onExit, onUpgrade }: StoryModeProps) {
                     background: theme === 'dark' ? 'rgba(15, 15, 35, 0.3)' : 'rgba(255, 255, 255, 0.3)',
                   }}
                 >
-                  <p className="text-base leading-relaxed" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+                  <p className="text-base leading-relaxed" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                     {currentScene.dialogue}
                   </p>
                 </div>
@@ -986,7 +986,7 @@ export function StoryMode({ onExit, onUpgrade }: StoryModeProps) {
               className="flex-1 h-12 rounded-full font-semibold"
               style={{
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
               }}
               aria-label={currentSceneIndex < selectedChapter.scenes.length - 1 ? 'Next scene' : 'Complete chapter'}
             >

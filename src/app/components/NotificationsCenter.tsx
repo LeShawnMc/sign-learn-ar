@@ -224,17 +224,17 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -242,7 +242,7 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
         errorBg: 'rgba(239, 68, 68, 0.1)',
         errorColor: '#EF4444',
         infoBg: 'rgba(0, 245, 255, 0.1)',
-        infoColor: '#00F5FF',
+        infoColor: 'var(--color-cyan)',
         blur: 'none',
         shadow: 'none',
         glassBorder: 'none',
@@ -258,7 +258,7 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -1087,7 +1087,7 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
                                     className="aspect-square rounded-lg font-semibold text-sm transition-all"
                                     style={{
                                       background: isActive ? colors.iconColor : colors.cardHover,
-                                      color: isActive ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textSecondary,
+                                      color: isActive ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textSecondary,
                                     }}
                                     role="checkbox"
                                     aria-checked={isActive}

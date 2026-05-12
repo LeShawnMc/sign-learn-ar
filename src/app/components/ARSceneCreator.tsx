@@ -416,7 +416,7 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
       id: 'my-scene-2',
       name: 'Professional Meeting Room',
       description: 'For practicing work-related conversations',
-      background: { type: 'solid', value: '#F8FAFC' },
+      background: { type: 'solid', value: 'var(--color-text)' },
       lighting: { ambient: 80, directional: 60, color: '#FFFFFF' },
       atmosphere: { timeOfDay: 'afternoon', weather: 'clear' },
       floor: { texture: 'carpet', pattern: 'solid' },
@@ -469,7 +469,7 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
     { id: 'gradient2', name: 'Sunset', type: 'gradient', value: '#FED7AA', value2: '#FCA5A5' },
     { id: 'gradient3', name: 'Ocean', type: 'gradient', value: '#DBEAFE', value2: '#A5F3FC' },
     { id: 'solid1', name: 'Pure White', type: 'solid', value: '#FFFFFF' },
-    { id: 'solid2', name: 'Soft Gray', type: 'solid', value: '#F8FAFC' },
+    { id: 'solid2', name: 'Soft Gray', type: 'solid', value: 'var(--color-text)' },
     { id: 'solid3', name: 'Warm Beige', type: 'solid', value: '#FAF5F0' },
     { id: 'image1', name: 'Modern Office', type: 'image', value: 'office-bg' },
     { id: 'image2', name: 'Home Interior', type: 'image', value: 'home-bg' },
@@ -554,17 +554,17 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -586,7 +586,7 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -643,7 +643,7 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
               className="flex-shrink-0"
               style={{ 
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
               }}
               aria-label="Create new scene"
             >
@@ -759,7 +759,7 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
                             className="px-3 py-1 rounded-full text-xs font-medium capitalize"
                             style={{
                               background: isSelected ? colors.iconColor : colors.border,
-                              color: isSelected ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textTertiary,
+                              color: isSelected ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textTertiary,
                             }}
                             aria-pressed={isSelected}
                           >
@@ -877,7 +877,7 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
                           className="w-full h-10 rounded-xl font-semibold"
                           style={{ 
                             background: colors.iconColor,
-                            color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                            color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                           }}
                           aria-label={`Use ${template.name} template`}
                         >
@@ -1108,9 +1108,9 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { id: 'morning', icon: Sunrise, label: 'Morning' },
+                      { id: 'morning', icon: Sun, label: 'Morning' },
                       { id: 'afternoon', icon: Sun, label: 'Afternoon' },
-                      { id: 'evening', icon: Sunset, label: 'Evening' },
+                      { id: 'evening', icon: Moon, label: 'Evening' },
                       { id: 'night', icon: Moon, label: 'Night' },
                     ].map((time) => {
                       const Icon = time.icon;
@@ -1342,7 +1342,7 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
                         className="flex-1 h-10 rounded-xl font-semibold"
                         style={{ 
                           background: colors.iconColor,
-                          color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                          color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                         }}
                         aria-label={`Download ${template.name}`}
                       >
@@ -1382,7 +1382,7 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
                 size="icon"
                 style={{ 
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Create new scene"
               >
@@ -1672,7 +1672,7 @@ export function ARSceneCreator({ onExit }: ARSceneCreatorProps) {
               className="w-full h-12 rounded-xl font-semibold"
               style={{ 
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
               }}
               aria-label="Share scene"
             >

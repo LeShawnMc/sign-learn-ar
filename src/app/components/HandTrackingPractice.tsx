@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useMediaPipeHands } from '../../lib/useMediaPipeHands';
+import { useSignClassifier } from '../../lib/useSignClassifier';
+import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import { Button } from './ui/button';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
@@ -75,7 +78,13 @@ export function HandTrackingPractice({ onExit }: HandTrackingPracticeProps) {
   const { theme } = useTheme();
   const { userProgress } = useApp();
 
-  // Tracking State
+  // ── MediaPipe + Classifier ────────────────────────────────────────────────
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hands = useMediaPipeHands(videoRef, canvasRef, { maxHands: 1 });
+  const classifier = useSignClassifier(hands.landmarks, { smoothingFrames: 5, threshold: 0.75 });
+
+  // Tracking State — declared before the callback that references these setters
   const [isTracking, setIsTracking] = useState(false);
   const [trackingStatus, setTrackingStatus] = useState<'excellent' | 'good' | 'poor' | 'offline'>('offline');
   const [handDetected, setHandDetected] = useState(false);
@@ -129,7 +138,7 @@ export function HandTrackingPractice({ onExit }: HandTrackingPracticeProps) {
         { x: 60, y: 40, time: 1.5 },
         { x: 70, y: 30, time: 2.0 },
       ],
-      color: '#00F5FF',
+      color: 'var(--color-cyan)',
     },
     {
       id: 'user',
@@ -141,7 +150,7 @@ export function HandTrackingPractice({ onExit }: HandTrackingPracticeProps) {
         { x: 58, y: 42, time: 1.7 },
         { x: 68, y: 32, time: 2.2 },
       ],
-      color: '#A855F7',
+      color: 'var(--color-purple)',
     },
   ]);
 
@@ -172,48 +181,36 @@ export function HandTrackingPractice({ onExit }: HandTrackingPracticeProps) {
   const [showCoordinates, setShowCoordinates] = useState(false);
   const [showOverlay, setShowOverlay] = useState(true);
 
-  // Simulate tracking updates
-  useEffect(() => {
+  // Sync real MediaPipe landmarks into UI state — declared after all state to avoid hoisting errors
+  const handleLandmarksUpdate = useCallback((lms: NormalizedLandmark[][] | null) => {
+    const detected = !!lms && lms.length > 0;
+    setHandDetected(detected);
+    if (!detected) { setConfidence(0); setTrackingStatus('offline'); return; }
+    const avgConf = (lms[0].reduce((s, p) => s + (p.z !== undefined ? 1 : 0.9), 0) / lms[0].length) * 100;
+    setConfidence(Math.round(avgConf));
+    setTrackingStatus(avgConf > 90 ? 'excellent' : avgConf > 75 ? 'good' : 'poor');
+    setHandPoints(lms[0].slice(0, 6).map((pt, i) => ({
+      id: ['wrist','thumb-tip','index-tip','middle-tip','ring-tip','pinky-tip'][i] ?? `pt-${i}`,
+      name: ['Wrist','Thumb Tip','Index Finger','Middle Finger','Ring Finger','Pinky'][i] ?? `Point ${i}`,
+      position: { x: pt.x * 100, y: pt.y * 100, z: pt.z ?? 0 },
+      confidence: 0.95,
+    })));
+  }, []);
+
+  useEffect(() => { handleLandmarksUpdate(hands.landmarks); }, [hands.landmarks, handleLandmarksUpdate]);
+
+  // Start/stop real camera tracking
+  const handleStartStop = async () => {
     if (isTracking) {
-      const interval = setInterval(() => {
-        // Update hand points with slight random variations
-        setHandPoints(prev => prev.map(point => ({
-          ...point,
-          position: {
-            x: point.position.x + (Math.random() - 0.5) * 2,
-            y: point.position.y + (Math.random() - 0.5) * 2,
-            z: point.position.z + (Math.random() - 0.5) * 0.5,
-          },
-          confidence: Math.max(0.85, Math.min(0.99, point.confidence + (Math.random() - 0.5) * 0.05)),
-        })));
-
-        // Update metrics
-        setMetrics(prev => prev.map(metric => ({
-          ...metric,
-          value: Math.max(0, Math.min(100, metric.value + (Math.random() - 0.5) * 5)),
-        })));
-
-        // Update tracking status based on average confidence
-        const avgConfidence = handPoints.reduce((sum, p) => sum + p.confidence, 0) / handPoints.length;
-        setConfidence(avgConfidence * 100);
-        
-        if (avgConfidence > 0.9) setTrackingStatus('excellent');
-        else if (avgConfidence > 0.8) setTrackingStatus('good');
-        else setTrackingStatus('poor');
-
-        setHandDetected(true);
-      }, 100);
-
-      return () => clearInterval(interval);
-    } else {
+      hands.stop();
+      setIsTracking(false);
       setTrackingStatus('offline');
       setHandDetected(false);
       setConfidence(0);
+    } else {
+      await hands.start();
+      if (!hands.error) setIsTracking(true);
     }
-  }, [isTracking]);
-
-  const handleStartStop = () => {
-    setIsTracking(!isTracking);
   };
 
   const handleReset = () => {
@@ -249,17 +246,17 @@ export function HandTrackingPractice({ onExit }: HandTrackingPracticeProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -281,7 +278,7 @@ export function HandTrackingPractice({ onExit }: HandTrackingPracticeProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -463,13 +460,27 @@ export function HandTrackingPractice({ onExit }: HandTrackingPracticeProps) {
             role="img"
             aria-label={`Hand tracking visualization showing ${handPoints.length} tracked points with ${confidence.toFixed(0)}% confidence`}
           >
+            {/* Real camera feed */}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ transform: 'scaleX(-1)', opacity: isTracking ? 1 : 0 }}
+              aria-hidden="true"
+            />
+            {/* MediaPipe landmark overlay */}
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              aria-hidden="true"
+            />
+
             {/* Dotted Frame Border */}
-            <div 
-              className="absolute inset-4"
-              style={{
-                border: `2px dashed ${colors.border}`,
-                borderRadius: '12px',
-              }}
+            <div
+              className="absolute inset-4 pointer-events-none"
+              style={{ border: `2px dashed ${colors.border}`, borderRadius: '12px' }}
               aria-hidden="true"
             />
 
@@ -518,9 +529,26 @@ export function HandTrackingPractice({ onExit }: HandTrackingPracticeProps) {
               </div>
             ))}
 
+            {/* Sign Prediction Badge */}
+            {isTracking && classifier.prediction && (
+              <div
+                className="absolute top-4 left-4 rounded-xl px-4 py-2 flex items-center gap-2"
+                style={{ background: 'rgba(168,85,247,0.9)', backdropFilter: 'blur(8px)' }}
+                aria-live="polite"
+              >
+                <span className="text-white font-bold text-lg">{classifier.prediction.label}</span>
+                <span className="text-white/70 text-xs">{(classifier.prediction.confidence * 100).toFixed(0)}%</span>
+              </div>
+            )}
+            {isTracking && classifier.noModel && (
+              <div className="absolute top-4 left-4 rounded-xl px-3 py-1.5 text-xs" style={{ background: 'rgba(0,0,0,0.7)', color: 'var(--color-text-muted)' }}>
+                No model trained yet — use Sign Trainer to train
+              </div>
+            )}
+
             {/* Real-time Feedback Overlay */}
             {showOverlay && isTracking && (
-              <div 
+              <div
                 className="absolute bottom-4 left-4 right-4 rounded-xl p-3"
                 style={{
                   background: 'rgba(0, 0, 0, 0.85)',

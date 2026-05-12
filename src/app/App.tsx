@@ -1,10 +1,12 @@
-import { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { SkipToMain } from './hooks';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AppContainer } from './components/AppContainer';
+import { AuthProvider, useAuth } from '../lib/AuthContext';
+import { AuthScreen } from './components/AuthScreen';
 
 const WelcomeScreen       = lazy(() => import('./components/onboarding/WelcomeScreen').then(m => ({ default: m.WelcomeScreen })));
 const ARCheckScreen       = lazy(() => import('./components/onboarding/ARCheckScreen').then(m => ({ default: m.ARCheckScreen })));
@@ -15,6 +17,9 @@ const LanguageSelectScreen = lazy(() => import('./components/onboarding/Language
 const GoalsSetupScreen    = lazy(() => import('./components/onboarding/GoalsSetupScreen').then(m => ({ default: m.GoalsSetupScreen })));
 const FirstLessonScreen   = lazy(() => import('./components/onboarding/FirstLessonScreen').then(m => ({ default: m.FirstLessonScreen })));
 const HomeScreen          = lazy(() => import('./components/HomeScreen').then(m => ({ default: m.HomeScreen })));
+const PrivacyPolicy       = lazy(() => import('./components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService      = lazy(() => import('./components/TermsOfService').then(m => ({ default: m.TermsOfService })));
+const SignTrainer         = lazy(() => import('./components/SignTrainer').then(m => ({ default: m.SignTrainer })));
 
 const ONBOARDING_ROUTES: Record<string, string> = {
   'welcome':         '/onboarding/welcome',
@@ -28,10 +33,29 @@ const ONBOARDING_ROUTES: Record<string, string> = {
 };
 
 const ScreenFallback = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-    <div style={{ width: 32, height: 32, border: '3px solid var(--color-primary, #4169E1)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+  <div style={{
+    position: 'fixed', inset: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: '#0F0F23',
+    zIndex: 50,
+  }}>
+    <div style={{
+      width: 40, height: 40,
+      border: '3px solid #00F5FF',
+      borderTopColor: 'transparent',
+      borderRadius: '50%',
+      animation: 'spin 0.7s linear infinite',
+    }} />
   </div>
 );
+
+// Shows AuthScreen until the user is signed in or chose guest mode
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { mode } = useAuth();
+  if (mode === 'loading') return null; // ScreenFallback already covers this via Suspense
+  if (mode === 'guest' || mode === 'authenticated') return <>{children}</>;
+  return <AuthScreen />;
+}
 
 // Keeps the URL in sync with AppContext step state
 function OnboardingSync() {
@@ -81,6 +105,13 @@ function AppRoutes() {
             {/* Main app */}
             <Route path="/home" element={<HomeScreen />} />
 
+            {/* Legal */}
+            <Route path="/privacy" element={<PrivacyPolicy onBack={() => window.history.back()} />} />
+            <Route path="/terms"   element={<TermsOfService onBack={() => window.history.back()} />} />
+
+            {/* Tools */}
+            <Route path="/train"   element={<SignTrainer onBack={() => window.history.back()} />} />
+
             {/* Catch-all */}
             <Route
               path="*"
@@ -97,14 +128,18 @@ export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <ThemeProvider>
-          <AppProvider>
-            <AppContainer>
-              <SkipToMain />
-              <AppRoutes />
-            </AppContainer>
-          </AppProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <AppProvider>
+              <AppContainer>
+                <AuthGate>
+                  <SkipToMain />
+                  <AppRoutes />
+                </AuthGate>
+              </AppContainer>
+            </AppProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );

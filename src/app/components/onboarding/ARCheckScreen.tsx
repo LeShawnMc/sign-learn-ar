@@ -86,7 +86,7 @@ export function ARCheckScreen() {
             )}
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold">3D Graphics Support</h3>
+            <h2 className="font-semibold text-base">3D Graphics Support</h2>
             <p className="text-sm text-gray-400">WebGL rendering capability</p>
           </div>
           <span 
@@ -114,7 +114,7 @@ export function ARCheckScreen() {
             )}
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold">Camera Access</h3>
+            <h2 className="font-semibold text-base">Camera Access</h2>
             <p className="text-sm text-gray-400">Required for hand tracking</p>
           </div>
           <span 
@@ -142,7 +142,7 @@ export function ARCheckScreen() {
             )}
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold">Motion Sensors</h3>
+            <h2 className="font-semibold text-base">Motion Sensors</h2>
             <p className="text-sm text-gray-400">For AR positioning</p>
           </div>
           <span 

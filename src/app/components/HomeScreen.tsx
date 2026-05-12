@@ -91,7 +91,7 @@ const DetailedAnalytics = lazy(() => import('./DetailedAnalytics').then(m => ({ 
 
 const ScreenFallback = () => (
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-    <div style={{ width: 32, height: 32, border: '3px solid var(--color-primary, #4169E1)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+    <div style={{ width: 32, height: 32, border: '3px solid var(--color-primary, var(--color-brand))', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
   </div>
 );
 const LazyScreen = ({ children }: { children: React.ReactNode }) => (
@@ -975,17 +975,17 @@ export function HomeScreen() {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        headerBg: '#1A1A2E',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        headerBg: 'var(--color-bg-elevated)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
-        progressGradient: 'linear-gradient(135deg, #00F5FF 0%, #A78BFA 100%)',
+        iconColor: 'var(--color-cyan)',
+        progressGradient: 'linear-gradient(135deg, var(--color-cyan) 0%, #A78BFA 100%)',
         premiumGradient: 'linear-gradient(135deg, #F59E0B 0%, #FF6B9D 100%)',
         blur: 'none',
         shadow: 'none',
@@ -1039,7 +1039,7 @@ export function HomeScreen() {
                 }}
                 aria-hidden="true"
               >
-                <Hand className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />
+                <Hand className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />
               </div>
               <div className="min-w-0 flex-1">
                 <h1 id="home-title" className="text-lg sm:text-2xl font-bold truncate" style={{ fontFamily: 'Poppins, sans-serif', color: colors.textPrimary }}>
@@ -1114,12 +1114,12 @@ export function HomeScreen() {
           >
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h2 className="text-base sm:text-lg font-semibold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>Today's Progress</h2>
+                <h2 className="text-base sm:text-lg font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>Today's Progress</h2>
                 <p className="text-xs sm:text-sm" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)' }}>
                   {userProgress.todayProgress} of {userProgress.dailyGoal} signs
                 </p>
               </div>
-              <div className="text-2xl sm:text-3xl font-bold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>
+              <div className="text-2xl sm:text-3xl font-bold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
                 {Math.round((userProgress.todayProgress / userProgress.dailyGoal) * 100)}%
               </div>
             </div>
@@ -1133,7 +1133,7 @@ export function HomeScreen() {
             >
               <motion.div 
                 className="h-full"
-                style={{ background: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}
+                style={{ background: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}
                 initial={{ width: 0 }}
                 animate={{ width: `${(userProgress.todayProgress / userProgress.dailyGoal) * 100}%` }}
                 transition={{ duration: 1, delay: 0.3 }}
@@ -1145,7 +1145,7 @@ export function HomeScreen() {
                   🔥
                 </div>
                 <div>
-                  <div className="font-semibold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>{userProgress.currentStreak} Days</div>
+                  <div className="font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>{userProgress.currentStreak} Days</div>
                   <div className="text-xs" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>Current Streak</div>
                 </div>
               </div>
@@ -1154,7 +1154,7 @@ export function HomeScreen() {
                   ✓
                 </div>
                 <div>
-                  <div className="font-semibold" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }}>{userProgress.totalSigns} Signs</div>
+                  <div className="font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>{userProgress.totalSigns} Signs</div>
                   <div className="text-xs" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>Total Learned</div>
                 </div>
               </div>
@@ -1478,7 +1478,7 @@ export function HomeScreen() {
                 onClick={() => setShowUpgrade(true)}
                 className="w-full h-12 rounded-full font-semibold"
                 style={{ background: 'white', color: '#F59E0B' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#F8FAFC'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-text)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
                 aria-label="Upgrade to premium"
               >
@@ -1526,9 +1526,9 @@ export function HomeScreen() {
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(0, 245, 255, 0.1)' }} aria-hidden="true">
                     {lesson.isPremium ? (
-                      <Lock className="w-6 h-6" style={{ color: '#00F5FF' }} />
+                      <Lock className="w-6 h-6" style={{ color: 'var(--color-cyan)' }} />
                     ) : (
-                      <Play className="w-6 h-6" style={{ color: '#00F5FF' }} />
+                      <Play className="w-6 h-6" style={{ color: 'var(--color-cyan)' }} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">

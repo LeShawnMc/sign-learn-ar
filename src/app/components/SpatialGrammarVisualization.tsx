@@ -536,7 +536,7 @@ export function SpatialGrammarVisualization({ onExit }: SpatialGrammarVisualizat
 
   // Playback simulation
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     if (isPlaying) {
       interval = setInterval(() => {
         setCurrentTime(prev => {
@@ -620,17 +620,17 @@ export function SpatialGrammarVisualization({ onExit }: SpatialGrammarVisualizat
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -652,7 +652,7 @@ export function SpatialGrammarVisualization({ onExit }: SpatialGrammarVisualizat
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -851,11 +851,11 @@ export function SpatialGrammarVisualization({ onExit }: SpatialGrammarVisualizat
                       transition: 'all 0.3s',
                     }}
                   >
-                    {marker.type === 'person' && <Hand className="w-5 h-5" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />}
-                    {marker.type === 'object' && <Circle className="w-5 h-5" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />}
-                    {marker.type === 'location' && <MapPin className="w-5 h-5" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />}
-                    {marker.type === 'time' && <Clock className="w-5 h-5" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />}
-                    {marker.type === 'reference' && <Target className="w-5 h-5" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />}
+                    {marker.type === 'person' && <Hand className="w-5 h-5" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />}
+                    {marker.type === 'object' && <Circle className="w-5 h-5" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />}
+                    {marker.type === 'location' && <MapPin className="w-5 h-5" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />}
+                    {marker.type === 'time' && <Clock className="w-5 h-5" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />}
+                    {marker.type === 'reference' && <Target className="w-5 h-5" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />}
                   </div>
                   
                   {/* Label */}
@@ -864,7 +864,7 @@ export function SpatialGrammarVisualization({ onExit }: SpatialGrammarVisualizat
                       className="text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap"
                       style={{
                         background: marker.active ? colors.iconColor : colors.cardBg,
-                        color: marker.active ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textPrimary,
+                        color: marker.active ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textPrimary,
                         boxShadow: colors.shadow,
                       }}
                     >
@@ -1067,7 +1067,7 @@ export function SpatialGrammarVisualization({ onExit }: SpatialGrammarVisualizat
                   className="flex-1 h-12 rounded-xl font-semibold flex items-center justify-center gap-2"
                   style={{ 
                     background: colors.iconColor,
-                    color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                    color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                   }}
                   aria-label={isPlaying ? 'Pause demonstration' : 'Play demonstration'}
                 >
@@ -1155,7 +1155,7 @@ export function SpatialGrammarVisualization({ onExit }: SpatialGrammarVisualizat
                     className="w-8 h-8 rounded-lg flex items-center justify-center font-bold flex-shrink-0"
                     style={{
                       background: idx === currentStepIndex ? colors.iconColor : colors.border,
-                      color: idx === currentStepIndex ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textSecondary,
+                      color: idx === currentStepIndex ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textSecondary,
                     }}
                   >
                     {idx + 1}

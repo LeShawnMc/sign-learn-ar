@@ -240,17 +240,17 @@ export function AvatarInstructorSettings({ onExit }: AvatarInstructorSettingsPro
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -272,7 +272,7 @@ export function AvatarInstructorSettings({ onExit }: AvatarInstructorSettingsPro
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -299,7 +299,7 @@ export function AvatarInstructorSettings({ onExit }: AvatarInstructorSettingsPro
     { id: 'blue', name: 'Blue', color: '#3B82F6' },
     { id: 'red', name: 'Red', color: '#EF4444' },
     { id: 'green', name: 'Green', color: '#22C55E' },
-    { id: 'purple', name: 'Purple', color: '#A855F7' },
+    { id: 'purple', name: 'Purple', color: 'var(--color-purple)' },
     { id: 'yellow', name: 'Yellow', color: '#FBD500' },
     { id: 'gray', name: 'Gray', color: '#6B7280' },
   ];
@@ -309,7 +309,7 @@ export function AvatarInstructorSettings({ onExit }: AvatarInstructorSettingsPro
     { id: 'brown', name: 'Brown', color: '#4A3428' },
     { id: 'blonde', name: 'Blonde', color: '#F0DC82' },
     { id: 'red', name: 'Red', color: '#C84C3C' },
-    { id: 'gray', name: 'Gray', color: '#94A3B8' },
+    { id: 'gray', name: 'Gray', color: 'var(--color-text-muted)' },
     { id: 'white', name: 'White', color: '#FFFFFF' },
   ];
 
@@ -2035,7 +2035,7 @@ export function AvatarInstructorSettings({ onExit }: AvatarInstructorSettingsPro
             className="flex-1 h-12 rounded-xl font-semibold"
             style={{
               background: hasUnsavedChanges ? colors.iconColor : colors.border,
-              color: hasUnsavedChanges ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textTertiary,
+              color: hasUnsavedChanges ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textTertiary,
               opacity: hasUnsavedChanges ? 1 : 0.5,
             }}
             aria-label="Save avatar settings"

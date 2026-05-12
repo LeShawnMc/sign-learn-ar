@@ -75,7 +75,7 @@ export function PermissionsScreen() {
               <Camera className="w-6 h-6 text-blue-500" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold mb-1">Camera Access</h3>
+              <h2 className="font-semibold text-base mb-1">Camera Access</h2>
               <p className="text-sm text-gray-400 leading-relaxed">
                 Required for AR hand tracking and real-time feedback on your signing. We analyze your hand movements to help you learn correctly.
               </p>
@@ -95,7 +95,7 @@ export function PermissionsScreen() {
               <Mic className="w-6 h-6 text-blue-500" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold mb-1">Microphone Access</h3>
+              <h2 className="font-semibold text-base mb-1">Microphone Access</h2>
               <p className="text-sm text-gray-400 leading-relaxed">
                 Optional for voice commands and pronunciation practice. You can enable this later in settings.
               </p>

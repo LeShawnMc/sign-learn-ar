@@ -423,17 +423,17 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -453,7 +453,7 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -540,7 +540,7 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
                 style={{
                   background: activeTab === tab.id ? colors.iconColor : colors.cardBg,
                   color: activeTab === tab.id 
-                    ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                    ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                     : colors.textPrimary,
                   border: colors.glassBorder,
                 }}
@@ -569,7 +569,7 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
             className="w-full h-12 rounded-full font-semibold mb-4"
             style={{
               background: colors.iconColor,
-              color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+              color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
             }}
             aria-label="Create new post"
           >
@@ -639,10 +639,10 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
                             style={{ background: colors.warningColor }}
                           >
                             {post.achievement.icon === 'award' && (
-                              <Award className="w-6 h-6" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} aria-hidden="true" />
+                              <Award className="w-6 h-6" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} aria-hidden="true" />
                             )}
                             {post.achievement.icon === 'flame' && (
-                              <Flame className="w-6 h-6" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} aria-hidden="true" />
+                              <Flame className="w-6 h-6" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} aria-hidden="true" />
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -819,7 +819,7 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
                     background: challenge.progress !== undefined ? colors.cardBg : colors.iconColor,
                     color: challenge.progress !== undefined 
                       ? colors.textPrimary 
-                      : (theme === 'dark' ? '#0F0F23' : '#FFFFFF'),
+                      : (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF'),
                     border: colors.glassBorder,
                   }}
                   aria-label={challenge.progress !== undefined ? `Continue ${challenge.title}` : `Join ${challenge.title}`}
@@ -873,7 +873,7 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
                     className="w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0"
                     style={{
                       background: entry.rank <= 3 ? colors.warningColor : colors.iconBg,
-                      color: entry.rank <= 3 ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.iconColor,
+                      color: entry.rank <= 3 ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.iconColor,
                     }}
                     aria-label={`Rank ${entry.rank}`}
                   >
@@ -1013,7 +1013,7 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
                     className="flex-1 h-10 rounded-full font-semibold"
                     style={{
                       background: colors.iconColor,
-                      color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                      color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                     }}
                     aria-label={`Register for ${event.title}`}
                   >
@@ -1056,7 +1056,7 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
               className="h-10 px-4 rounded-full font-semibold"
               style={{
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
               }}
               aria-label="Create new topic"
             >
@@ -1187,7 +1187,7 @@ export function CommunityFeed({ onExit }: CommunityFeedProps) {
                 className="w-full h-12 rounded-full font-semibold"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Confirm registration"
               >

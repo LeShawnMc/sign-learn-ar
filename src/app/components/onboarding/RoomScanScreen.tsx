@@ -86,7 +86,7 @@ export function RoomScanScreen() {
             <p className="text-gray-400 mb-6">
               Room scanning helps the app understand your space to place virtual objects and provide better AR experiences.
             </p>
-            <div className="text-left space-y-4 mb-8">
+            <div className="text-left space-y-4 mb-8" role="list" aria-label="Scanning tips">
               <div className="flex items-start gap-3" role="listitem">
                 <div className="w-8 h-8 rounded-full bg-blue-600/20 flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">
                   <span className="text-blue-500 font-semibold">1</span>

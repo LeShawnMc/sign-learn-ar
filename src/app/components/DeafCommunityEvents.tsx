@@ -514,17 +514,17 @@ export function DeafCommunityEvents({ onExit }: DeafCommunityEventsProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -546,7 +546,7 @@ export function DeafCommunityEvents({ onExit }: DeafCommunityEventsProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -733,7 +733,7 @@ export function DeafCommunityEvents({ onExit }: DeafCommunityEventsProps) {
                   className="h-10 px-3 rounded-xl"
                   style={{ 
                     background: showFilters ? colors.iconColor : colors.iconBg,
-                    color: showFilters ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.iconColor,
+                    color: showFilters ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.iconColor,
                   }}
                   aria-label="Toggle filters"
                   aria-pressed={showFilters}
@@ -765,7 +765,7 @@ export function DeafCommunityEvents({ onExit }: DeafCommunityEventsProps) {
                       className="px-3 py-1.5 rounded-lg text-sm font-medium"
                       style={{
                         background: selectedCategory === 'all' ? colors.iconColor : colors.border,
-                        color: selectedCategory === 'all' ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textTertiary,
+                        color: selectedCategory === 'all' ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textTertiary,
                       }}
                       aria-label="All categories"
                       aria-pressed={selectedCategory === 'all'}
@@ -925,7 +925,7 @@ export function DeafCommunityEvents({ onExit }: DeafCommunityEventsProps) {
                           className="flex-1 h-9 rounded-lg flex items-center justify-center text-sm font-semibold"
                           style={{ 
                             background: event.rsvpStatus === 'interested' ? colors.iconColor : colors.iconBg,
-                            color: event.rsvpStatus === 'interested' ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.iconColor,
+                            color: event.rsvpStatus === 'interested' ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.iconColor,
                           }}
                         >
                           {event.rsvpStatus === 'interested' ? '★ Interested' : 'Interested'}
@@ -1133,7 +1133,7 @@ export function DeafCommunityEvents({ onExit }: DeafCommunityEventsProps) {
                   className="h-14 rounded-xl font-semibold text-lg"
                   style={{ 
                     background: selectedEvent.rsvpStatus === 'interested' ? colors.iconColor : colors.iconBg,
-                    color: selectedEvent.rsvpStatus === 'interested' ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.iconColor,
+                    color: selectedEvent.rsvpStatus === 'interested' ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.iconColor,
                   }}
                   aria-label={selectedEvent.rsvpStatus === 'interested' ? 'Not interested' : 'Mark as interested'}
                   aria-pressed={selectedEvent.rsvpStatus === 'interested'}
@@ -1208,7 +1208,7 @@ export function DeafCommunityEvents({ onExit }: DeafCommunityEventsProps) {
                   className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
                   style={{
                     background: cat === 'All' ? colors.iconColor : colors.iconBg,
-                    color: cat === 'All' ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.iconColor,
+                    color: cat === 'All' ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.iconColor,
                   }}
                   aria-label={`Filter by ${cat}`}
                 >
@@ -1331,7 +1331,7 @@ export function DeafCommunityEvents({ onExit }: DeafCommunityEventsProps) {
                     className="h-9 px-4 rounded-lg text-sm font-semibold"
                     style={{ 
                       background: org.isFollowing ? colors.border : colors.iconColor,
-                      color: org.isFollowing ? colors.textSecondary : (theme === 'dark' ? '#0F0F23' : '#FFFFFF'),
+                      color: org.isFollowing ? colors.textSecondary : (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF'),
                     }}
                     aria-label={org.isFollowing ? 'Unfollow' : 'Follow'}
                     aria-pressed={org.isFollowing}
@@ -1392,7 +1392,7 @@ export function DeafCommunityEvents({ onExit }: DeafCommunityEventsProps) {
                     className="h-10 px-6 rounded-xl font-semibold"
                     style={{ 
                       background: selectedOrg.isFollowing ? colors.border : colors.iconColor,
-                      color: selectedOrg.isFollowing ? colors.textSecondary : (theme === 'dark' ? '#0F0F23' : '#FFFFFF'),
+                      color: selectedOrg.isFollowing ? colors.textSecondary : (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF'),
                     }}
                     aria-label={selectedOrg.isFollowing ? 'Unfollow organization' : 'Follow organization'}
                     aria-pressed={selectedOrg.isFollowing}

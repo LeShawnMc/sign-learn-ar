@@ -334,17 +334,17 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -366,7 +366,7 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -496,7 +496,7 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
                 style={{
                   background: activeTab === tab.id ? colors.iconColor : colors.cardBg,
                   color: activeTab === tab.id 
-                    ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                    ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                     : colors.textPrimary,
                   border: colors.glassBorder,
                 }}
@@ -530,7 +530,7 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
                 style={{
                   background: filterLevel === level ? colors.iconColor : colors.cardBg,
                   color: filterLevel === level 
-                    ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                    ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                     : colors.textPrimary,
                   border: colors.glassBorder,
                 }}
@@ -661,7 +661,7 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
                           className="h-10 rounded-full font-semibold text-sm"
                           style={{
                             background: colors.iconColor,
-                            color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                            color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                           }}
                           aria-label="Join class"
                         >
@@ -693,7 +693,7 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
                           background: isFull ? colors.cardBg : colors.iconColor,
                           color: isFull 
                             ? colors.textTertiary 
-                            : (theme === 'dark' ? '#0F0F23' : '#FFFFFF'),
+                            : (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF'),
                           opacity: isFull ? 0.5 : 1,
                         }}
                         aria-label={isFull ? 'Class full' : `Book ${cls.title}`}
@@ -792,7 +792,7 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
                       className="h-9 rounded-full font-semibold text-xs col-span-2"
                       style={{
                         background: colors.iconColor,
-                        color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                        color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                       }}
                       aria-label={`Watch ${recording.classTitle}`}
                     >
@@ -977,7 +977,7 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
                         className="h-10 rounded-full font-semibold text-sm"
                         style={{
                           background: colors.iconColor,
-                          color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                          color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                         }}
                         aria-label="Join class"
                       >
@@ -1012,7 +1012,7 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
                 className="h-10 px-6 rounded-full font-semibold"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Browse upcoming classes"
               >
@@ -1155,7 +1155,7 @@ export function LiveClassSchedule({ onExit, onUpgrade }: LiveClassScheduleProps)
                   className="w-full h-12 rounded-full font-semibold"
                   style={{
                     background: colors.iconColor,
-                    color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                    color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                   }}
                   aria-label={`View classes by ${selectedInstructor.name}`}
                 >

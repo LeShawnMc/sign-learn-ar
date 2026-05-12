@@ -416,16 +416,16 @@ export function GrammarLessonsScreen({ onExit, onUpgrade }: GrammarLessonsScreen
 
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        headerBg: '#1A1A2E',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        headerBg: 'var(--color-bg-elevated)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         successColor: '#10B981',
         errorColor: '#EF4444',
         blur: 'none',
@@ -702,7 +702,7 @@ export function GrammarLessonsScreen({ onExit, onUpgrade }: GrammarLessonsScreen
                   className="w-full h-12 rounded-full font-semibold"
                   style={{ 
                     background: colors.iconColor,
-                    color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                    color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                   }}
                   aria-label="Continue to AR demonstration"
                 >
@@ -810,7 +810,7 @@ export function GrammarLessonsScreen({ onExit, onUpgrade }: GrammarLessonsScreen
                     className="flex-1 h-12 rounded-full font-semibold"
                     style={{ 
                       background: colors.iconColor,
-                      color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                      color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                     }}
                     aria-label="Continue to quiz"
                   >
@@ -984,7 +984,7 @@ export function GrammarLessonsScreen({ onExit, onUpgrade }: GrammarLessonsScreen
                         className="w-full h-12 rounded-full font-semibold"
                         style={{ 
                           background: colors.iconColor,
-                          color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                          color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                         }}
                         aria-label={currentQuizIndex < selectedRule.quiz.length - 1 ? 'Next question' : 'Complete quiz'}
                       >
@@ -1052,7 +1052,7 @@ export function GrammarLessonsScreen({ onExit, onUpgrade }: GrammarLessonsScreen
                         className="flex-1 h-12 rounded-full font-semibold"
                         style={{ 
                           background: colors.iconColor,
-                          color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                          color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                         }}
                         aria-label="Return to lesson list"
                       >
@@ -1122,7 +1122,7 @@ export function GrammarLessonsScreen({ onExit, onUpgrade }: GrammarLessonsScreen
               style={{
                 background: filterCategory === category ? colors.iconColor : colors.cardBg,
                 color: filterCategory === category 
-                  ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                  ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                   : colors.textSecondary,
                 backdropFilter: colors.blur,
                 WebkitBackdropFilter: colors.blur,

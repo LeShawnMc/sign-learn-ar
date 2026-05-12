@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useMediaPipeHands, LANDMARK } from '../../lib/useMediaPipeHands';
 import { Button } from './ui/button';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
@@ -77,6 +78,9 @@ export function ARPracticeMirror({
   const { userProgress } = useApp();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // ── Real MediaPipe hand tracking ──────────────────────────────────────────
+  const hands = useMediaPipeHands(videoRef, canvasRef, { maxHands: 2 });
 
   // Camera & Mirror States
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -157,28 +161,61 @@ export function ARPracticeMirror({
   // UI States
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Simulate recording timer
+  // Keep existing loading/permission UI state in sync with the hook
+  useEffect(() => { setIsLoading(hands.loading); }, [hands.loading]);
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    if (hands.ready) { setCameraPermission('granted'); setIsCameraActive(true); }
+    if (hands.error) { setCameraPermission('denied'); setIsCameraActive(false); }
+  }, [hands.ready, hands.error]);
+
+  // ── Derive real feedback from MediaPipe landmarks ─────────────────────────
+  const computeFeedback = useCallback(() => {
+    const lms = hands.landmarks;
+    if (!lms || lms.length === 0) return;
+    const hand = lms[0];
+
+    // Hand vertical position: wrist y < 0.3 = too high, > 0.7 = too low
+    const wristY = hand[LANDMARK.WRIST]?.y ?? 0.5;
+    const handPosition: FeedbackData['handPosition'] =
+      wristY < 0.3 ? 'too-high' : wristY > 0.7 ? 'too-low' : 'correct';
+
+    // Hand horizontal position
+    const wristX = hand[LANDMARK.WRIST]?.x ?? 0.5;
+    const handPositionH: FeedbackData['handPosition'] =
+      wristX < 0.2 ? 'too-left' : wristX > 0.8 ? 'too-right' : handPosition;
+
+    // Crude hand-open detection: if index tip is above index MCP, hand is open
+    const indexTipY  = hand[LANDMARK.INDEX_TIP]?.y ?? 0;
+    const indexMcpY  = hand[LANDMARK.INDEX_MCP]?.y ?? 0;
+    const handShape: FeedbackData['handShape'] =
+      indexTipY < indexMcpY ? 'correct' : 'incorrect';
+
+    // Accuracy heuristic: starts at 100, -10 per wrong axis
+    let accuracy = 100;
+    if (handPositionH !== 'correct') accuracy -= 15;
+    if (handShape !== 'correct') accuracy -= 20;
+
+    const overall: FeedbackData['overall'] =
+      accuracy >= 90 ? 'excellent' : accuracy >= 70 ? 'good' : 'needs-improvement';
+
+    setCurrentFeedback({ accuracy, handPosition: handPositionH, handShape, movement: 'correct', overall });
+  }, [hands.landmarks]);
+
+  // Recording timer + live feedback from real landmarks
+  useEffect(() => {
+    let interval: ReturnType<typeof setTimeout>;
     if (isRecording && !isPaused) {
       interval = setInterval(() => {
         setRecordingTime(prev => prev + 0.1);
-        // Simulate feedback changes
-        setCurrentFeedback({
-          accuracy: Math.floor(85 + Math.random() * 15),
-          handPosition: Math.random() > 0.8 ? 'too-high' : 'correct',
-          handShape: Math.random() > 0.9 ? 'incorrect' : 'correct',
-          movement: Math.random() > 0.85 ? 'too-fast' : 'correct',
-          overall: Math.random() > 0.7 ? 'good' : 'excellent',
-        });
+        computeFeedback();
       }, 100);
     }
     return () => clearInterval(interval);
-  }, [isRecording, isPaused]);
+  }, [isRecording, isPaused, computeFeedback]);
 
   // Simulate playback timer
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     if (isPlaying && selectedSession) {
       interval = setInterval(() => {
         setPlaybackTime(prev => {
@@ -195,13 +232,11 @@ export function ARPracticeMirror({
   }, [isPlaying, selectedSession, playbackSpeed]);
 
   const handleActivateCamera = async () => {
-    setIsLoading(true);
-    // Simulate camera activation
-    setTimeout(() => {
+    await hands.start();
+    if (!hands.error) {
       setCameraPermission('granted');
       setIsCameraActive(true);
-      setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleStartRecording = () => {
@@ -279,17 +314,17 @@ export function ARPracticeMirror({
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -311,7 +346,7 @@ export function ARPracticeMirror({
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -357,7 +392,7 @@ export function ARPracticeMirror({
                 AR Practice Mirror
               </h1>
               <p className="text-sm truncate" style={{ color: colors.textSecondary }}>
-                Practice "{signToLearn}" with real-time feedback
+                Practice &quot;{signToLearn}&quot; with real-time feedback
               </p>
             </div>
           </div>
@@ -397,7 +432,7 @@ export function ARPracticeMirror({
                 className="w-full h-12 rounded-xl font-semibold"
                 style={{ 
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Activate camera for practice"
               >
@@ -750,9 +785,9 @@ export function ARPracticeMirror({
                       aria-label={isPlaying ? 'Pause playback' : 'Play recording'}
                     >
                       {isPlaying ? (
-                        <Pause className="w-6 h-6" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />
+                        <Pause className="w-6 h-6" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />
                       ) : (
-                        <Play className="w-6 h-6 ml-1" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />
+                        <Play className="w-6 h-6 ml-1" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />
                       )}
                     </button>
 
@@ -807,7 +842,7 @@ export function ARPracticeMirror({
                   className="h-12 rounded-xl font-semibold"
                   style={{ 
                     background: colors.warningColor,
-                    color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                    color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                   }}
                   aria-label={isPaused ? 'Resume recording' : 'Pause recording'}
                 >
@@ -1182,7 +1217,7 @@ export function ARPracticeMirror({
                       className="flex-1 h-9 rounded-lg font-semibold text-sm"
                       style={{ 
                         background: colors.iconColor,
-                        color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                        color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                       }}
                       aria-label={`Play recording of ${session.sign}`}
                     >

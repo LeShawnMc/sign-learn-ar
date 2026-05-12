@@ -387,17 +387,17 @@ export function InterpreterMode({ onExit }: InterpreterModeProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -419,7 +419,7 @@ export function InterpreterMode({ onExit }: InterpreterModeProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -543,7 +543,7 @@ export function InterpreterMode({ onExit }: InterpreterModeProps) {
               className="relative aspect-video bg-gradient-to-br flex items-center justify-center"
               style={{
                 background: theme === 'dark' 
-                  ? 'linear-gradient(135deg, #1E1E3F 0%, #252541 100%)'
+                  ? 'linear-gradient(135deg, var(--color-bg-card) 0%, #252541 100%)'
                   : 'linear-gradient(135deg, #E0F2FE 0%, #EDE9FE 100%)',
               }}
               role="img"

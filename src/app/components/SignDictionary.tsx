@@ -1066,17 +1066,17 @@ export function SignDictionary({ onExit }: SignDictionaryProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -1098,7 +1098,7 @@ export function SignDictionary({ onExit }: SignDictionaryProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -1259,7 +1259,7 @@ export function SignDictionary({ onExit }: SignDictionaryProps) {
                       className="px-3 py-1 rounded-full text-xs font-medium"
                       style={{
                         background: isSelected ? colors.iconColor : colors.border,
-                        color: isSelected ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textTertiary,
+                        color: isSelected ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textTertiary,
                       }}
                       aria-pressed={isSelected}
                     >
@@ -1395,7 +1395,7 @@ export function SignDictionary({ onExit }: SignDictionaryProps) {
                       className="w-8 h-8 rounded-lg text-sm font-bold flex items-center justify-center"
                       style={{
                         background: isSelected ? colors.iconColor : hasSign ? colors.iconBg : 'transparent',
-                        color: isSelected ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : hasSign ? colors.iconColor : colors.border,
+                        color: isSelected ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : hasSign ? colors.iconColor : colors.border,
                         cursor: hasSign ? 'pointer' : 'not-allowed',
                       }}
                       aria-label={`Filter by letter ${letter}`}
@@ -1599,7 +1599,7 @@ export function SignDictionary({ onExit }: SignDictionaryProps) {
                       className="w-16 h-16 rounded-full flex items-center justify-center"
                       style={{ background: colors.iconColor }}
                     >
-                      <Play className="w-8 h-8" style={{ color: theme === 'dark' ? '#0F0F23' : '#FFFFFF' }} />
+                      <Play className="w-8 h-8" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />
                     </div>
                   </button>
                 )}
@@ -1655,7 +1655,7 @@ export function SignDictionary({ onExit }: SignDictionaryProps) {
                       className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
                       style={{
                         background: currentAngle === idx ? colors.iconColor : colors.border,
-                        color: currentAngle === idx ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.textSecondary,
+                        color: currentAngle === idx ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.textSecondary,
                       }}
                       aria-label={`View ${video.angle}`}
                       aria-pressed={currentAngle === idx}
@@ -2127,7 +2127,7 @@ export function SignDictionary({ onExit }: SignDictionaryProps) {
               className="w-full h-12 rounded-xl font-semibold"
               style={{ 
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
               }}
               aria-label="Create new study set"
             >

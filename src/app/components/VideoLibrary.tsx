@@ -372,15 +372,15 @@ export function VideoLibrary({ onExit, onUpgrade }: VideoLibraryProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         searchBg: 'rgba(30, 30, 63, 0.8)',
         premiumBg: 'rgba(251, 191, 36, 0.1)',
         premiumColor: '#FBD500',
@@ -503,7 +503,7 @@ export function VideoLibrary({ onExit, onUpgrade }: VideoLibraryProps) {
             className="flex items-center gap-2 h-9 px-3 rounded-full"
             style={{
               background: showFilters ? colors.iconColor : colors.iconBg,
-              color: showFilters ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF') : colors.iconColor,
+              color: showFilters ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF') : colors.iconColor,
             }}
             aria-expanded={showFilters}
             aria-controls="category-filters"
@@ -535,7 +535,7 @@ export function VideoLibrary({ onExit, onUpgrade }: VideoLibraryProps) {
                     style={{
                       background: selectedCategory === category.id ? colors.iconColor : colors.cardBg,
                       color: selectedCategory === category.id 
-                        ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                        ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                         : colors.textPrimary,
                       border: colors.glassBorder,
                     }}

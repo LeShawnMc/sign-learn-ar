@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
@@ -112,17 +112,17 @@ export function CameraARSettings({ onExit }: CameraARSettingsProps) {
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -144,7 +144,7 @@ export function CameraARSettings({ onExit }: CameraARSettingsProps) {
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -343,16 +343,11 @@ export function CameraARSettings({ onExit }: CameraARSettingsProps) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {(() => {
-                  const Icon = getPermissionIcon(cameraPermission);
-                  return (
-                    <Icon 
-                      className="w-5 h-5" 
-                      style={{ color: getPermissionColor(cameraPermission) }}
-                      aria-label={`Camera permission ${cameraPermission}`}
-                    />
-                  );
-                })()}
+                {React.createElement(getPermissionIcon(cameraPermission), {
+                  className: 'w-5 h-5',
+                  style: { color: getPermissionColor(cameraPermission) },
+                  'aria-label': `Camera permission ${cameraPermission}`,
+                })}
               </div>
             </div>
             
@@ -362,7 +357,7 @@ export function CameraARSettings({ onExit }: CameraARSettingsProps) {
                 className="w-full h-10 rounded-full font-semibold"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Request camera permission"
               >
@@ -399,16 +394,11 @@ export function CameraARSettings({ onExit }: CameraARSettingsProps) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {(() => {
-                  const Icon = getPermissionIcon(microphonePermission);
-                  return (
-                    <Icon 
-                      className="w-5 h-5" 
-                      style={{ color: getPermissionColor(microphonePermission) }}
-                      aria-label={`Microphone permission ${microphonePermission}`}
-                    />
-                  );
-                })()}
+                {React.createElement(getPermissionIcon(microphonePermission), {
+                  className: 'w-5 h-5',
+                  style: { color: getPermissionColor(microphonePermission) },
+                  'aria-label': `Microphone permission ${microphonePermission}`,
+                })}
               </div>
             </div>
             
@@ -496,7 +486,7 @@ export function CameraARSettings({ onExit }: CameraARSettingsProps) {
                 className="w-full h-10 rounded-full font-semibold"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="Start AR calibration"
               >
@@ -578,7 +568,7 @@ export function CameraARSettings({ onExit }: CameraARSettingsProps) {
                     className="flex-1 h-10 rounded-full font-semibold"
                     style={{
                       background: colors.iconColor,
-                      color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                      color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                     }}
                     aria-label="Continue to next calibration step"
                   >
@@ -631,7 +621,7 @@ export function CameraARSettings({ onExit }: CameraARSettingsProps) {
                   className="w-full h-10 rounded-full font-semibold"
                   style={{
                     background: colors.iconColor,
-                    color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                    color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                   }}
                   aria-label={roomScanned ? 'Rescan room' : 'Start room scan'}
                 >

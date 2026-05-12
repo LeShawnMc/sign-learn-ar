@@ -329,15 +329,15 @@ export function CertificationCenter({ onExit, onUpgrade }: CertificationCenterPr
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         errorBg: 'rgba(239, 68, 68, 0.1)',
@@ -567,7 +567,7 @@ export function CertificationCenter({ onExit, onUpgrade }: CertificationCenterPr
               className="h-auto py-4 px-4 rounded-xl flex flex-col items-center gap-2"
               style={{
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
               }}
               aria-label="Browse available exams"
             >
@@ -746,7 +746,7 @@ export function CertificationCenter({ onExit, onUpgrade }: CertificationCenterPr
                 style={{
                   background: filterLevel === level.id ? colors.iconColor : colors.cardBg,
                   color: filterLevel === level.id 
-                    ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                    ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                     : colors.textPrimary,
                   border: colors.glassBorder,
                 }}
@@ -836,7 +836,7 @@ export function CertificationCenter({ onExit, onUpgrade }: CertificationCenterPr
                           className="flex-1 h-10 rounded-full font-semibold"
                           style={{
                             background: colors.iconColor,
-                            color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                            color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                           }}
                           aria-label={`Start ${cert.name} ${cert.examType === 'practice' ? 'practice test' : 'exam'}`}
                         >
@@ -1024,7 +1024,7 @@ export function CertificationCenter({ onExit, onUpgrade }: CertificationCenterPr
                           color: showResult && (isThisCorrect || isSelected)
                             ? '#FFFFFF'
                             : isSelected
-                            ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                            ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                             : colors.textTertiary,
                         }}
                         aria-hidden="true"
@@ -1095,7 +1095,7 @@ export function CertificationCenter({ onExit, onUpgrade }: CertificationCenterPr
               style={{
                 background: selectedAnswer !== undefined ? colors.iconColor : colors.cardBg,
                 color: selectedAnswer !== undefined 
-                  ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                  ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                   : colors.textTertiary,
               }}
               aria-label="Check answer"
@@ -1108,7 +1108,7 @@ export function CertificationCenter({ onExit, onUpgrade }: CertificationCenterPr
               className="w-full h-12 rounded-full font-semibold text-base"
               style={{
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
               }}
               aria-label={currentQuestionIndex < practiceQuestions.length - 1 ? 'Next question' : 'Finish test'}
             >
@@ -1262,7 +1262,7 @@ export function CertificationCenter({ onExit, onUpgrade }: CertificationCenterPr
                 className="w-full h-12 rounded-full font-semibold"
                 style={{
                   background: colors.iconColor,
-                  color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                 }}
                 aria-label="View certificate"
               >
@@ -1449,7 +1449,7 @@ export function CertificationCenter({ onExit, onUpgrade }: CertificationCenterPr
               className="h-12 rounded-full font-semibold"
               style={{
                 background: colors.iconColor,
-                color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
               }}
               aria-label="Download certificate"
             >

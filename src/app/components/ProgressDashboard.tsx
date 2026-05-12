@@ -160,17 +160,17 @@ export function ProgressDashboard({ onExit, onStartPractice }: ProgressDashboard
   // Theme-aware colors
   const colors = theme === 'dark'
     ? {
-        bg: '#0F0F23',
-        cardBg: '#1E1E3F',
+        bg: 'var(--color-bg-deep)',
+        cardBg: 'var(--color-bg-card)',
         cardHover: '#252541',
-        textPrimary: '#F8FAFC',
-        textSecondary: '#94A3B8',
+        textPrimary: 'var(--color-text)',
+        textSecondary: 'var(--color-text-muted)',
         textTertiary: '#64748B',
         border: 'rgba(148, 163, 184, 0.2)',
         iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: '#00F5FF',
+        iconColor: 'var(--color-cyan)',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -192,7 +192,7 @@ export function ProgressDashboard({ onExit, onStartPractice }: ProgressDashboard
         iconBg: 'rgba(14, 165, 233, 0.12)',
         iconColor: '#0EA5E9',
         accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: '#A855F7',
+        accentColor: 'var(--color-purple)',
         successBg: 'rgba(34, 197, 94, 0.1)',
         successColor: '#22C55E',
         warningBg: 'rgba(251, 191, 36, 0.1)',
@@ -264,7 +264,7 @@ export function ProgressDashboard({ onExit, onStartPractice }: ProgressDashboard
                 style={{
                   background: selectedTab === tab.id ? colors.iconColor : colors.cardBg,
                   color: selectedTab === tab.id 
-                    ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                    ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                     : colors.textPrimary,
                   border: colors.glassBorder,
                 }}
@@ -344,7 +344,7 @@ export function ProgressDashboard({ onExit, onStartPractice }: ProgressDashboard
                     <div className="opacity-90">Signs Learned</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">{userProgress.lessonsCompleted}</div>
+                    <div className="text-2xl font-bold">{userProgress.completedLessons}</div>
                     <div className="opacity-90">Lessons Done</div>
                   </div>
                   <div>
@@ -818,7 +818,7 @@ export function ProgressDashboard({ onExit, onStartPractice }: ProgressDashboard
                   style={{
                     background: area.needsPractice ? colors.iconColor : colors.cardBg,
                     color: area.needsPractice 
-                      ? (theme === 'dark' ? '#0F0F23' : '#FFFFFF')
+                      ? (theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF')
                       : colors.textPrimary,
                     border: area.needsPractice ? 'none' : colors.glassBorder,
                   }}
@@ -922,7 +922,7 @@ export function ProgressDashboard({ onExit, onStartPractice }: ProgressDashboard
                   className="w-full h-12 rounded-full font-semibold"
                   style={{
                     background: colors.iconColor,
-                    color: theme === 'dark' ? '#0F0F23' : '#FFFFFF',
+                    color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
                   }}
                   aria-label={`${selectedPath.completed ? 'Review' : 'Continue'} ${selectedPath.title}`}
                 >
