@@ -33,8 +33,11 @@ import {
   Zap,
 } from 'lucide-react';
 
+type NavScreen = 'friends' | 'achievements' | 'streaks' | 'challenges' | 'events' | 'messages' | 'progress' | 'community';
+
 interface NotificationsCenterProps {
   onExit: () => void;
+  onNavigate?: (screen: NavScreen) => void;
 }
 
 interface Notification {
@@ -48,9 +51,9 @@ interface Notification {
   icon?: any;
 }
 
-export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
+export function NotificationsCenter({ onExit, onNavigate }: NotificationsCenterProps) {
   const { theme } = useTheme();
-  const { userProgress } = useApp();
+  const { userProgress, notifications: appNotifications } = useApp();
 
   // Notification History State
   const [notifications, setNotifications] = useState<Notification[]>([
@@ -211,6 +214,19 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
     sunday: false,
   });
 
+  // Email preferences (controlled)
+  const [emailPrefs, setEmailPrefs] = useState({
+    dailyProgress: true,
+    weeklyReport: true,
+    monthlyNewsletter: true,
+    tipsAndPractices: false,
+    courseAnnouncements: true,
+    communityUpdates: false,
+  });
+
+  // Save feedback
+  const [prefsSaved, setPrefsSaved] = useState(false);
+
   // UI State
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
   const [showPreferences, setShowPreferences] = useState(false);
@@ -296,41 +312,93 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
   };
 
   const handleMarkAsRead = (id: string) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   const handleDeleteNotification = (id: string) => {
-    setNotifications(notifications.filter(n => n.id !== id));
+    setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
-  const handleClearAll = () => {
-    setNotifications([]);
+  const handleClearAll = () => setNotifications([]);
+
+  const handleAcceptFriend = (id: string) => {
+    setNotifications(prev => prev.map(n =>
+      n.id === id
+        ? { ...n, read: true, actionable: false, title: '✅ Friend Added!', message: 'You are now connected. Start a practice session together!' }
+        : n,
+    ));
+  };
+
+  const handleJoinEvent = (id: string) => {
+    handleMarkAsRead(id);
+    onNavigate?.('events');
+  };
+
+  const handleNotificationTap = (notification: Notification) => {
+    handleMarkAsRead(notification.id);
+    const map: Record<string, NavScreen> = {
+      friend_request: 'friends',
+      achievement:    'achievements',
+      streak:         'streaks',
+      challenge:      'challenges',
+      event:          'events',
+      message:        'messages',
+      progress:       'progress',
+      social:         'community',
+    };
+    const screen = map[notification.type];
+    if (screen) onNavigate?.(screen);
+  };
+
+  const handleSavePreferences = () => {
+    try {
+      localStorage.setItem('signlearn-notif-prefs', JSON.stringify({
+        pushNotifications, emailNotifications, notificationSound,
+        friendRequests, achievements, streakReminders, challenges,
+        events, messages, progressUpdates, socialActivity,
+        dailyReminders, reminderTime, reminderDays, emailPrefs,
+      }));
+    } catch { /* quota */ }
+    setPrefsSaved(true);
+    setTimeout(() => setPrefsSaved(false), 2000);
   };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections({
-      ...expandedSections,
-      [section]: !expandedSections[section],
-    });
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   const toggleDay = (day: keyof typeof reminderDays) => {
-    setReminderDays({
-      ...reminderDays,
-      [day]: !reminderDays[day],
-    });
+    setReminderDays(prev => ({ ...prev, [day]: !prev[day] }));
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-  const filteredNotifications = activeTab === 'unread' 
-    ? notifications.filter(n => !n.read)
-    : notifications;
+  // Merge real app notifications (achievements, streaks, etc.) with local list
+  const mergedNotifications: Notification[] = [
+    ...appNotifications.map(n => ({
+      id: `ctx-${n.id}`,
+      type: (n.type === 'achievement' ? 'achievement'
+           : n.type === 'reminder'   ? 'streak'
+           : n.type === 'social'     ? 'social'
+           : 'progress') as Notification['type'],
+      title: n.title,
+      message: n.message,
+      time: n.time,
+      read: n.read,
+      icon: n.type === 'achievement' ? Award
+          : n.type === 'reminder'    ? Flame
+          : n.type === 'social'      ? Heart
+          : TrendingUp,
+    })),
+    ...notifications,
+  ];
+
+  const unreadCount = mergedNotifications.filter(n => !n.read).length;
+  const filteredNotifications = activeTab === 'unread'
+    ? mergedNotifications.filter(n => !n.read)
+    : mergedNotifications;
 
   return (
     <div 
@@ -467,21 +535,24 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -100 }}
-                      className="rounded-xl p-4 transition-all"
+                      className="rounded-xl p-4 transition-all cursor-pointer"
                       style={{
                         background: notification.read ? colors.cardBg : colors.cardHover,
                         backdropFilter: colors.blur,
                         WebkitBackdropFilter: colors.blur,
-                        border: colors.glassBorder,
+                        border: !notification.read ? `1px solid ${colors.iconColor}33` : colors.glassBorder,
                         boxShadow: colors.shadow,
-                        opacity: notification.read ? 0.7 : 1,
+                        opacity: notification.read ? 0.75 : 1,
                       }}
-                      role="listitem"
-                      aria-label={`${notification.title} - ${notification.message} - ${notification.time}`}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${notification.title} — tap to open`}
+                      onClick={() => handleNotificationTap(notification)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleNotificationTap(notification)}
                     >
                       <div className="flex gap-3">
                         {/* Icon */}
-                        <div 
+                        <div
                           className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
                           style={{ background: notifColor.bg }}
                           aria-hidden="true"
@@ -496,8 +567,8 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
                               {notification.title}
                             </div>
                             {!notification.read && (
-                              <div 
-                                className="flex-shrink-0 w-2 h-2 rounded-full"
+                              <div
+                                className="flex-shrink-0 w-2 h-2 rounded-full mt-1"
                                 style={{ background: colors.iconColor }}
                                 aria-label="Unread"
                               />
@@ -506,19 +577,53 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
                           <p className="text-sm mb-2" style={{ color: colors.textSecondary }}>
                             {notification.message}
                           </p>
+
+                          {/* Friend request Accept / Decline */}
+                          {notification.actionable && notification.type === 'friend_request' && !notification.read && (
+                            <div className="flex gap-2 mb-2">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleAcceptFriend(notification.id); }}
+                                className="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                                style={{ background: colors.successColor }}
+                                aria-label="Accept friend request"
+                              >
+                                Accept
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteNotification(notification.id); }}
+                                className="flex-1 py-1.5 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90"
+                                style={{ background: colors.errorBg, color: colors.errorColor }}
+                                aria-label="Decline friend request"
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Event — Join button */}
+                          {notification.type === 'event' && !notification.read && (
+                            <div className="mb-2">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleJoinEvent(notification.id); }}
+                                className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                                style={{ background: colors.infoColor }}
+                                aria-label="Join event"
+                              >
+                                Join Now →
+                              </button>
+                            </div>
+                          )}
+
                           <div className="flex items-center justify-between">
                             <span className="text-xs" style={{ color: colors.textTertiary }}>
                               {notification.time}
                             </span>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                               {!notification.read && (
                                 <button
                                   onClick={() => handleMarkAsRead(notification.id)}
                                   className="text-xs px-3 py-1 rounded-lg transition-colors"
-                                  style={{
-                                    background: colors.iconBg,
-                                    color: colors.iconColor,
-                                  }}
+                                  style={{ background: colors.iconBg, color: colors.iconColor }}
                                   aria-label={`Mark ${notification.title} as read`}
                                 >
                                   Mark Read
@@ -527,10 +632,7 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
                               <button
                                 onClick={() => handleDeleteNotification(notification.id)}
                                 className="text-xs px-3 py-1 rounded-lg transition-colors"
-                                style={{
-                                  background: colors.errorBg,
-                                  color: colors.errorColor,
-                                }}
+                                style={{ background: colors.errorBg, color: colors.errorColor }}
                                 aria-label={`Delete ${notification.title}`}
                               >
                                 Delete
@@ -1149,24 +1251,25 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
                       </p>
 
                       <div className="space-y-3">
-                        {[
-                          { label: 'Daily Progress Summary', enabled: true },
-                          { label: 'Weekly Report', enabled: true },
-                          { label: 'Monthly Newsletter', enabled: true },
-                          { label: 'Tips & Best Practices', enabled: false },
-                          { label: 'New Course Announcements', enabled: true },
-                          { label: 'Community Updates', enabled: false },
-                        ].map((item, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 rounded-lg" style={{ background: colors.cardHover }}>
+                        {(Object.entries({
+                          dailyProgress:        'Daily Progress Summary',
+                          weeklyReport:         'Weekly Report',
+                          monthlyNewsletter:    'Monthly Newsletter',
+                          tipsAndPractices:     'Tips & Best Practices',
+                          courseAnnouncements:  'New Course Announcements',
+                          communityUpdates:     'Community Updates',
+                        }) as [keyof typeof emailPrefs, string][]).map(([key, label]) => (
+                          <div key={key} className="flex items-center justify-between p-3 rounded-lg" style={{ background: colors.cardHover }}>
                             <span className="text-sm font-medium" style={{ color: colors.textPrimary }}>
-                              {item.label}
+                              {label}
                             </span>
                             <input
                               type="checkbox"
-                              defaultChecked={item.enabled}
+                              checked={emailPrefs[key]}
+                              onChange={() => setEmailPrefs(prev => ({ ...prev, [key]: !prev[key] }))}
                               className="w-5 h-5 rounded"
                               style={{ accentColor: colors.iconColor }}
-                              aria-label={`Receive ${item.label} emails`}
+                              aria-label={`Receive ${label} emails`}
                             />
                           </div>
                         ))}
@@ -1176,6 +1279,21 @@ export function NotificationsCenter({ onExit }: NotificationsCenterProps) {
                 )}
               </AnimatePresence>
             </section>
+
+            {/* Save Preferences */}
+            <div className="sticky bottom-0 pt-4 pb-6">
+              <button
+                onClick={handleSavePreferences}
+                className="w-full h-12 rounded-full font-semibold text-sm transition-all"
+                style={{
+                  background: prefsSaved ? colors.successColor : colors.iconColor,
+                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
+                }}
+                aria-label="Save notification preferences"
+              >
+                {prefsSaved ? '✓ Preferences Saved!' : 'Save Preferences'}
+              </button>
+            </div>
           </div>
         )}
       </div>

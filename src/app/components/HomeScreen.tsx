@@ -499,8 +499,19 @@ export function HomeScreen() {
   // Show notifications center screen
   if (showNotificationsCenter) {
     return (
-      <LazyScreen><NotificationsCenter 
+      <LazyScreen><NotificationsCenter
         onExit={() => setShowNotificationsCenter(false)}
+        onNavigate={(screen) => {
+          setShowNotificationsCenter(false);
+          if (screen === 'friends')       setShowFriendsConnections(true);
+          else if (screen === 'achievements') setShowAchievementsBadges(true);
+          else if (screen === 'streaks')  setShowDailyStreaksRewards(true);
+          else if (screen === 'challenges') setShowChallengesHub(true);
+          else if (screen === 'events')   setShowDeafCommunityEvents(true);
+          else if (screen === 'messages') setShowMessagingChat(true);
+          else if (screen === 'progress') setShowProgressDashboard(true);
+          else if (screen === 'community') setShowCommunityFeed(true);
+        }}
       />
       </LazyScreen>
     );
