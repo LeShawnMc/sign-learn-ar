@@ -32,12 +32,17 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { track } from '../../lib/analytics';
 
-type PaywallView = 
+type PaywallView =
   | 'comparison'
   | 'daily-limit'
   | 'trial'
-  | 'family';
+  | 'family'
+  | 'checkout'
+  | 'success';
+
+type PlanTier = 'premium' | 'pro' | 'family';
 
 interface PlanFeature {
   name: string;
@@ -61,15 +66,17 @@ interface PaywallScreenProps {
 }
 
 export function PaywallScreen({ onExit, initialView = 'comparison', limitType }: PaywallScreenProps) {
-  const { selectedLanguage } = useApp();
+  const { upgradeToPremium, userProgress } = useApp();
   const [currentView, setCurrentView] = useState<PaywallView>(initialView);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
+  const [selectedTier, setSelectedTier] = useState<PlanTier>('premium');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [invitesSent, setInvitesSent] = useState(0);
-  const [familyCode, setFamilyCode] = useState('FAMILY2024');
+  const [familyCode] = useState('FAMILY-2024');
   const [codeCopied, setCodeCopied] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
 
   // Feature comparison data
   const planFeatures: PlanFeature[] = [
@@ -219,16 +226,63 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
     return () => clearInterval(interval);
   }, [featureHighlights.length]);
 
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(familyCode);
+    } catch {
+      // clipboard API unavailable — still show visual feedback
+    }
     setCodeCopied(true);
     setTimeout(() => setCodeCopied(false), 2000);
   };
 
-  const handleSendInvite = () => {
-    if (inviteEmail) {
-      setInvitesSent(prev => prev + 1);
-      setInviteEmail('');
+  const handleSendInvite = async () => {
+    if (!inviteEmail) return;
+    const subject = encodeURIComponent('Join my Sign Learn AR Family Plan!');
+    const body = encodeURIComponent(
+      `Hi!\n\nI'd like to invite you to join my Sign Learn AR family plan.\n\nUse this code to join: ${familyCode}\n\nDownload the app at https://sign-learn-ar.vercel.app\n\nSee you there! 🤟`,
+    );
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Sign Learn AR Family Invite', text: `Join my family plan! Code: ${familyCode}` });
+      } catch { /* cancelled */ }
+    } else {
+      window.open(`mailto:${inviteEmail}?subject=${subject}&body=${body}`, '_self');
     }
+    setInvitesSent(prev => prev + 1);
+    setInviteEmail('');
+  };
+
+  const tierPrice = (tier: PlanTier) => {
+    const prices: Record<PlanTier, { monthly: string; yearly: string }> = {
+      premium: { monthly: '9.99', yearly: '5.99' },
+      pro:     { monthly: '14.99', yearly: '9.99' },
+      family:  { monthly: '19.99', yearly: '14.99' },
+    };
+    return prices[tier][selectedPlan];
+  };
+
+  const tierLabel = (tier: PlanTier) =>
+    tier === 'family' ? 'Family Plan' : tier === 'pro' ? 'Pro' : 'Premium';
+
+  const tierColor = (tier: PlanTier) =>
+    tier === 'family' ? 'from-pink-600 to-pink-800'
+    : tier === 'pro'  ? 'from-purple-600 to-purple-800'
+    : 'from-blue-600 to-blue-800';
+
+  const startTrial = (tier: PlanTier) => {
+    setSelectedTier(tier);
+    track('upgrade_started', { tier, billing: selectedPlan });
+    setCurrentView('checkout');
+  };
+
+  const handleActivate = async () => {
+    setIsActivating(true);
+    await new Promise(r => setTimeout(r, 1200)); // simulate brief processing
+    upgradeToPremium();
+    track('upgrade_completed', { tier: selectedTier, billing: selectedPlan });
+    setIsActivating(false);
+    setCurrentView('success');
   };
 
   const getLimitMessage = () => {
@@ -382,10 +436,10 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
               <Button
                 size="sm"
                 className="w-full text-xs bg-white text-blue-600 hover:bg-gray-100"
-                onClick={() => setCurrentView('trial')}
+                onClick={() => startTrial('premium')}
                 aria-label="Start Premium trial"
               >
-                Start Trial
+                {userProgress.isPremium ? 'Current Plan' : 'Start Trial'}
               </Button>
             </motion.div>
 
@@ -405,7 +459,7 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
               <Button
                 size="sm"
                 className="w-full text-xs bg-white text-purple-600 hover:bg-gray-100"
-                onClick={() => setCurrentView('trial')}
+                onClick={() => startTrial('pro')}
                 aria-label="Start Pro trial"
               >
                 Start Trial
@@ -491,7 +545,7 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            onClick={() => setCurrentView('family')}
+            onClick={() => { setSelectedTier('family'); setCurrentView('family'); }}
             className="w-full bg-gradient-to-r from-pink-600 to-pink-800 rounded-xl p-5 mt-6 text-left"
             aria-label="View family plan options"
           >
@@ -624,7 +678,7 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
               transition={{ delay: 0.5 }}
             >
               <Button
-                onClick={() => setCurrentView('trial')}
+                onClick={() => startTrial('premium')}
                 className="w-full bg-blue-600 hover:bg-blue-700 h-14 text-lg font-semibold rounded-full"
                 aria-label="Try Premium free for 7 days"
               >
@@ -722,7 +776,7 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-8 text-center relative overflow-hidden"
+            className={`bg-gradient-to-br ${tierColor(selectedTier)} rounded-2xl p-8 text-center relative overflow-hidden`}
           >
             {/* Sparkle decorations */}
             <motion.div
@@ -756,12 +810,12 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
 
             <div className="text-6xl mb-4" aria-hidden="true">🎁</div>
             <h2 className="text-3xl font-bold mb-2">7 Days Free</h2>
-            <p className="text-lg opacity-90 mb-4">
-              Full access to Premium features
+            <p className="text-lg opacity-90 mb-2">
+              Full access to {tierLabel(selectedTier)} features
             </p>
             <div className="inline-block bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
               <p className="text-sm font-semibold">
-                Then ${selectedPlan === 'monthly' ? '9.99' : '5.99'}/month
+                Then ${tierPrice(selectedTier)}/month ({selectedPlan})
               </p>
             </div>
           </motion.div>
@@ -841,7 +895,8 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
         <div className="flex-1" />
         <div className="p-6 border-t border-gray-900 space-y-3">
           <Button
-            className="w-full bg-blue-600 hover:bg-blue-700 h-14 text-lg font-semibold rounded-full"
+            onClick={() => setCurrentView('checkout')}
+            className={`w-full h-14 text-lg font-semibold rounded-full bg-gradient-to-r ${tierColor(selectedTier)} hover:opacity-90 border-0`}
             aria-label="Start 7-day free trial"
           >
             <Gift className="w-5 h-5 mr-2" />
@@ -1045,6 +1100,7 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
         <div className="flex-1" />
         <div className="p-6 border-t border-gray-900 space-y-3">
           <Button
+            onClick={() => startTrial('family')}
             className="w-full bg-pink-600 hover:bg-pink-700 h-14 text-lg font-semibold rounded-full"
             aria-label="Start family plan"
           >
@@ -1060,6 +1116,188 @@ export function PaywallScreen({ onExit, initialView = 'comparison', limitType }:
             View Individual Plans
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  // ── Checkout View ───────────────────────────────────────────────────────────
+  if (currentView === 'checkout') {
+    const isTrial = selectedTier !== 'family' || true; // always trial for now
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col" role="main" aria-labelledby="checkout-title">
+        {/* Header */}
+        <div className="p-6 flex items-center justify-between">
+          <Button variant="ghost" size="icon" onClick={() => setCurrentView(selectedTier === 'family' ? 'family' : 'trial')} className="w-10 h-10 rounded-full hover:bg-gray-900" aria-label="Back">
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+          <h1 id="checkout-title" className="text-xl font-bold">Confirm Plan</h1>
+          <Button variant="ghost" size="icon" onClick={onExit} className="w-10 h-10 rounded-full hover:bg-gray-900" aria-label="Close">
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="flex-1 px-6 overflow-y-auto pb-6">
+          {/* Plan Summary Card */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className={`bg-gradient-to-br ${tierColor(selectedTier)} rounded-2xl p-6 mb-6`}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <Crown className="w-8 h-8" />
+              <div>
+                <div className="text-xl font-bold">{tierLabel(selectedTier)}</div>
+                <div className="text-sm opacity-90">{selectedPlan === 'yearly' ? 'Yearly billing' : 'Monthly billing'}</div>
+              </div>
+            </div>
+            <div className="bg-white/20 rounded-xl p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-semibold">7-Day Free Trial</span>
+                <span className="text-lg font-bold">$0.00</span>
+              </div>
+              <div className="flex justify-between items-center text-sm opacity-80">
+                <span>After trial ends</span>
+                <span>${tierPrice(selectedTier)}/month</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Trial terms */}
+          <div className="bg-gray-900 rounded-xl p-5 mb-6">
+            <h3 className="font-semibold mb-3">What happens next</h3>
+            <div className="space-y-3">
+              {[
+                { day: 'Today', desc: 'Full access to all features unlocks immediately' },
+                { day: 'Day 5',  desc: "We'll send a reminder before your trial ends" },
+                { day: 'Day 7',  desc: `${tierLabel(selectedTier)} begins at $${tierPrice(selectedTier)}/mo — cancel anytime` },
+              ].map(({ day, desc }) => (
+                <div key={day} className="flex gap-3">
+                  <div className="w-16 text-xs font-bold text-gray-400 pt-0.5 flex-shrink-0">{day}</div>
+                  <p className="text-sm text-gray-300">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Included features */}
+          <div className="bg-gray-900 rounded-xl p-5 mb-6">
+            <h3 className="font-semibold mb-3">Included in your trial</h3>
+            <div className="space-y-2">
+              {[
+                'Unlimited lessons & practice sessions',
+                'Real-time AR hand tracking',
+                selectedTier !== 'premium' ? '1,000+ sign vocabulary library' : '500+ sign vocabulary library',
+                'Advanced progress analytics',
+                'Offline mode & downloads',
+                selectedTier === 'family' ? 'Up to 6 family members' : 'Social practice rooms',
+              ].map(f => (
+                <div key={f} className="flex items-center gap-2 text-sm">
+                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <span>{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Guarantee */}
+          <div className="flex items-start gap-3 bg-green-900/20 border border-green-800/30 rounded-xl p-4 mb-6">
+            <Shield className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <div className="font-semibold text-sm text-green-400 mb-1">Risk-Free Guarantee</div>
+              <p className="text-xs text-gray-400">Cancel within 7 days and you will not be charged. No questions asked.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Activate CTA */}
+        <div className="p-6 border-t border-gray-900 space-y-3">
+          <Button
+            onClick={handleActivate}
+            disabled={isActivating}
+            className={`w-full h-14 text-lg font-semibold rounded-full bg-gradient-to-r ${tierColor(selectedTier)} border-0 hover:opacity-90 disabled:opacity-60`}
+            aria-label="Activate free trial"
+          >
+            {isActivating ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Activating…
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5 mr-2" />
+                Activate Free Trial
+              </>
+            )}
+          </Button>
+          <p className="text-center text-xs text-gray-500">
+            Cancel anytime in Settings → Subscription. No charge during trial.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Success View ─────────────────────────────────────────────────────────────
+  if (currentView === 'success') {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-6" role="main">
+        {/* Animated celebration */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', duration: 0.7 }}
+          className={`w-28 h-28 rounded-full bg-gradient-to-br ${tierColor(selectedTier)} flex items-center justify-center mb-6`}
+        >
+          <Crown className="w-14 h-14 text-white" />
+        </motion.div>
+
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="text-3xl font-bold text-center mb-2"
+        >
+          {tierLabel(selectedTier)} Activated! 🎉
+        </motion.h1>
+
+        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="text-gray-400 text-center mb-8"
+        >
+          Your 7-day free trial has started. Enjoy unlimited access to everything.
+        </motion.p>
+
+        {/* Unlocked features */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+          className="w-full max-w-sm bg-gray-900 rounded-2xl p-5 mb-8"
+        >
+          <div className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">Now Unlocked</div>
+          <div className="space-y-3">
+            {[
+              { icon: '♾️', label: 'Unlimited lessons & practice' },
+              { icon: '📱', label: 'Full AR hand tracking' },
+              { icon: '🌍', label: 'All sign languages' },
+              { icon: '📥', label: 'Offline mode & downloads' },
+              { icon: '📊', label: 'Advanced analytics' },
+            ].map(({ icon, label }) => (
+              <div key={label} className="flex items-center gap-3">
+                <span className="text-xl">{icon}</span>
+                <span className="text-sm font-medium">{label}</span>
+                <Check className="w-4 h-4 text-green-500 ml-auto" />
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+          className="w-full max-w-sm space-y-3"
+        >
+          <Button
+            onClick={onExit}
+            className={`w-full h-14 text-lg font-semibold rounded-full bg-gradient-to-r ${tierColor(selectedTier)} border-0`}
+            aria-label="Start learning with Premium"
+          >
+            <Zap className="w-5 h-5 mr-2" />
+            Start Learning Now
+          </Button>
+          <p className="text-center text-xs text-gray-500">
+            Manage your subscription anytime in Settings → Subscription
+          </p>
+        </motion.div>
       </div>
     );
   }
