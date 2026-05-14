@@ -16,6 +16,7 @@ export function CourseCertificate({ onExit }: CourseCertificateProps) {
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'detail'>('grid');
   const [filterLevel, setFilterLevel] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const colors = {
     background: theme === 'dark' ? '#0A0A1A' : '#F5F7FA',
@@ -34,13 +35,48 @@ export function CourseCertificate({ onExit }: CourseCertificateProps) {
     : certificates.filter(cert => cert.level === filterLevel);
 
   const handleDownloadCertificate = (certificate: Certificate) => {
-    // In production, this would generate and download a PDF certificate
-    alert(`Certificate ${certificate.certificateNumber} download started!`);
+    // Build a plain-text certificate and trigger a .txt download
+    const content = [
+      '─────────────────────────────────────────',
+      '         SIGN LEARN AR — CERTIFICATE',
+      '─────────────────────────────────────────',
+      `Course:      ${certificate.courseName}`,
+      `Level:       ${certificate.level}`,
+      `Score:       ${certificate.score}%`,
+      `Completed:   ${new Date(certificate.completionDate).toLocaleDateString()}`,
+      `Duration:    ${certificate.duration}`,
+      `Instructor:  ${certificate.instructor}`,
+      `Cert No.:    ${certificate.certificateNumber}`,
+      '─────────────────────────────────────────',
+      'Skills earned:',
+      ...certificate.skills.map(s => `  • ${s}`),
+      '─────────────────────────────────────────',
+    ].join('\n');
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `certificate-${certificate.certificateNumber}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const handleShareCertificate = (certificate: Certificate) => {
-    // In production, this would share to social media or copy link
-    alert(`Share your achievement in ${certificate.courseName}!`);
+  const handleShareCertificate = async (certificate: Certificate) => {
+    const text = `I just completed "${certificate.courseName}" on Sign Learn AR with a score of ${certificate.score}%! 🎓🤟 #SignLearnAR #ASL`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'My Sign Learn AR Certificate', text });
+        return;
+      } catch { /* user cancelled */ }
+    }
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(text);
+      // Visual feedback via temporary state (no alert)
+      setCopiedId(certificate.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch { /* clipboard not available */ }
   };
 
   const getLevelColor = (level: string) => {
@@ -303,12 +339,14 @@ export function CourseCertificate({ onExit }: CourseCertificateProps) {
                     onClick={() => handleShareCertificate(certificate)}
                     className="flex-1 h-11 rounded-xl font-semibold"
                     style={{
-                      background: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-                      color: colors.textPrimary,
+                      background: copiedId === certificate.id
+                        ? colors.success
+                        : theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                      color: copiedId === certificate.id ? '#fff' : colors.textPrimary,
                     }}
                   >
                     <Share2 className="w-4 h-4 mr-2" />
-                    Share
+                    {copiedId === certificate.id ? 'Copied!' : 'Share'}
                   </Button>
                 </div>
               </motion.div>

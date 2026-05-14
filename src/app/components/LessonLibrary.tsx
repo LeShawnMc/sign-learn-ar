@@ -60,7 +60,7 @@ interface LessonLibraryProps {
 }
 
 export function LessonLibrary({ onExit, onUpgrade }: LessonLibraryProps) {
-  const { selectedLanguage } = useApp();
+  const { userProgress, enrolledCourses } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>('all');
   const [selectedCategory, setSelectedCategory] = useState<CourseCategory>('all');
@@ -683,24 +683,31 @@ export function LessonLibrary({ onExit, onUpgrade }: LessonLibraryProps) {
     { id: 'advanced', name: 'Advanced', color: 'red' },
   ];
 
+  // Merge static catalog with real user progress from context
+  const coursesWithProgress = useMemo(() => {
+    return allCourses.map(course => {
+      const enrolled    = enrolledCourses.find(c => c.id === course.id);
+      const isCompleted = userProgress.completedCourses.includes(course.id);
+      return {
+        ...course,
+        isCompleted,
+        progress: enrolled?.progress ?? (isCompleted ? 100 : course.progress),
+      };
+    });
+  }, [allCourses, enrolledCourses, userProgress]);
+
   // Filter and search logic
   const filteredCourses = useMemo(() => {
-    return allCourses.filter(course => {
-      // Search filter
-      const matchesSearch = searchQuery === '' || 
+    return coursesWithProgress.filter(course => {
+      const matchesSearch = searchQuery === '' ||
         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         course.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      // Category filter
-      const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
-
-      // Difficulty filter
+      const matchesCategory   = selectedCategory   === 'all' || course.category   === selectedCategory;
       const matchesDifficulty = selectedDifficulty === 'all' || course.difficulty === selectedDifficulty;
-
       return matchesSearch && matchesCategory && matchesDifficulty;
     });
-  }, [searchQuery, selectedCategory, selectedDifficulty, allCourses]);
+  }, [searchQuery, selectedCategory, selectedDifficulty, coursesWithProgress]);
 
   // Course detail view
   if (selectedCourse) {
