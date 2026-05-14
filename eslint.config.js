@@ -19,6 +19,7 @@ const browserGlobals = {
   HTMLElement: true, HTMLInputElement: true, HTMLVideoElement: true,
   HTMLCanvasElement: true, HTMLButtonElement: true, HTMLDivElement: true,
   SVGElement: true, Element: true, Node: true, HTMLFormElement: true,
+  Notification: true, NotificationPermission: true, ServiceWorkerRegistration: true,
   React: true, // for JSX files without explicit React import
 };
 

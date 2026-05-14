@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import * as tf from '@tensorflow/tfjs';
 import type { ObjectDetection, DetectedObject } from '@tensorflow-models/coco-ssd';
 
 export interface DetectedObjectResult {
@@ -122,7 +121,8 @@ export function useObjectDetection(
     setError(null);
 
     try {
-      // Ensure TF.js backend is ready
+      // Ensure TF.js backend is ready (lazy-loaded so it splits into its own chunk)
+      const tf = await import('@tensorflow/tfjs');
       await tf.ready();
 
       // Load model (cached after first load via browser cache)

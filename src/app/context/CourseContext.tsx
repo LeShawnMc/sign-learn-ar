@@ -1,6 +1,7 @@
 import type { Course, Certificate } from '../types';
 import { useAppState } from './AppStateContext';
 import { applyAchievementChecks } from './AchievementsContext';
+import { track } from '../../lib/analytics';
 
 const generateCertificateNumber = (): string => {
   const year = new Date().getFullYear();
@@ -21,6 +22,7 @@ export function useCourses() {
     enrollInCourse: (course: Course) =>
       setState(prev => {
         if (prev.userProgress.enrolledCourses.includes(course.id)) return prev;
+        track('course_enrolled', { courseId: course.id, courseTitle: course.title });
         return {
           ...prev,
           userProgress: {
@@ -51,6 +53,7 @@ export function useCourses() {
       setState(prev => {
         const course = prev.enrolledCourses.find(c => c.id === courseId);
         if (!course || prev.userProgress.completedCourses.includes(courseId)) return prev;
+        track('course_completed', { courseId, finalScore });
 
         const certificate: Certificate = {
           id: `cert-${Date.now()}`,

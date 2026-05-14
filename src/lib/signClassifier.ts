@@ -1,4 +1,14 @@
-import * as tf from '@tensorflow/tfjs';
+// Lazy-load TF.js so Rollup can split it into its own async chunk
+type TF = typeof import('@tensorflow/tfjs');
+let _tf: TF | null = null;
+
+async function getTf(): Promise<TF> {
+  if (!_tf) {
+    _tf = await import('@tensorflow/tfjs');
+    await _tf.ready();
+  }
+  return _tf;
+}
 
 export interface SignSample {
   label: string;
@@ -43,7 +53,8 @@ export function clearTrainingData(): void {
  *
  * 63 features = 21 landmarks × 3 axes (normalised)
  */
-function buildModel(numClasses: number): tf.Sequential {
+async function buildModel(numClasses: number): Promise<import('@tensorflow/tfjs').Sequential> {
+  const tf = await getTf();
   const model = tf.sequential();
   model.add(tf.layers.dense({ inputShape: [63], units: 128, activation: 'relu' }));
   model.add(tf.layers.dropout({ rate: 0.3 }));
@@ -69,7 +80,7 @@ export interface TrainingOptions {
 }
 
 export interface TrainedModel {
-  model: tf.Sequential;
+  model: import('@tensorflow/tfjs').Sequential;
   labels: string[];
 }
 
@@ -77,6 +88,7 @@ export async function trainModel(
   dataset: TrainingDataset,
   opts: TrainingOptions = {}
 ): Promise<TrainedModel> {
+  const tf = await getTf();
   const { epochs = 80, batchSize = 32, validationSplit = 0.2, onEpochEnd } = opts;
 
   const labels = dataset.labels;
@@ -89,7 +101,7 @@ export async function trainModel(
   const labelIndices = dataset.samples.map(s => labels.indexOf(s.label));
   const ys = tf.oneHot(tf.tensor1d(labelIndices, 'int32'), numClasses);
 
-  const model = buildModel(numClasses);
+  const model = await buildModel(numClasses);
 
   await model.fit(xs, ys, {
     epochs,
@@ -124,7 +136,8 @@ export async function saveModel(trained: TrainedModel): Promise<void> {
 
 export async function loadModel(): Promise<TrainedModel | null> {
   try {
-    const model = (await tf.loadLayersModel(`indexeddb://${MODEL_KEY}`)) as tf.Sequential;
+    const tf = await getTf();
+    const model = (await tf.loadLayersModel(`indexeddb://${MODEL_KEY}`)) as import('@tensorflow/tfjs').Sequential;
     const raw = localStorage.getItem(`${MODEL_KEY}-labels`);
     if (!raw) return null;
     return { model, labels: JSON.parse(raw) as string[] };
@@ -135,6 +148,7 @@ export async function loadModel(): Promise<TrainedModel | null> {
 
 export async function deleteModel(): Promise<void> {
   try {
+    const tf = await getTf();
     await tf.io.removeModel(`indexeddb://${MODEL_KEY}`);
     localStorage.removeItem(`${MODEL_KEY}-labels`);
   } catch { /* already gone */ }
@@ -150,13 +164,19 @@ export interface Prediction {
 /**
  * Run inference on a single 63-element feature vector.
  * Returns the top prediction and all class scores.
+ * NOTE: This function is synchronous because `tf` is already initialised by the
+ * time a TrainedModel exists (loadModel / trainModel both call getTf() first).
+ * We keep it sync to avoid changing the call-sites in useSignClassifier.ts.
  */
 export function predict(trained: TrainedModel, features: Float32Array): {
   top: Prediction;
   all: Prediction[];
 } {
+  // _tf is guaranteed to be non-null here because getTf() was awaited in
+  // loadModel/trainModel before any TrainedModel could be created.
+  const tf = _tf!;
   const input = tf.tensor2d([Array.from(features)]);
-  const output = trained.model.predict(input) as tf.Tensor;
+  const output = trained.model.predict(input) as import('@tensorflow/tfjs').Tensor;
   const scores = Array.from(output.dataSync()) as number[];
   input.dispose();
   output.dispose();

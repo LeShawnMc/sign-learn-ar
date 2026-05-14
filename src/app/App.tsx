@@ -7,6 +7,10 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { AppContainer } from './components/AppContainer';
 import { AuthProvider, useAuth } from '../lib/AuthContext';
 import { AuthScreen } from './components/AuthScreen';
+import { initAnalytics, track } from '../lib/analytics';
+import { checkStreakReminder } from '../lib/pushNotifications';
+
+initAnalytics();
 
 const WelcomeScreen       = lazy(() => import('./components/onboarding/WelcomeScreen').then(m => ({ default: m.WelcomeScreen })));
 const ARCheckScreen       = lazy(() => import('./components/onboarding/ARCheckScreen').then(m => ({ default: m.ARCheckScreen })));
@@ -79,6 +83,11 @@ function OnboardingSync() {
 
 function AppRoutes() {
   const { onboardingComplete } = useApp();
+
+  useEffect(() => {
+    track('page_view', { path: window.location.pathname });
+    checkStreakReminder();
+  }, []);
 
   return (
     <>

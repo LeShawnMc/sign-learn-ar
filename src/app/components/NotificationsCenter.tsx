@@ -1,4 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  requestPermission,
+  savePushPrefs,
+  loadPushPrefs,
+  sendNotification,
+} from '../../lib/pushNotifications';
 import { Button } from './ui/button';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
@@ -187,7 +193,8 @@ export function NotificationsCenter({ onExit, onNavigate }: NotificationsCenterP
   ]);
 
   // Notification Preferences State
-  const [pushNotifications, setPushNotifications] = useState(true);
+  const [pushNotifications, setPushNotifications] = useState(() => loadPushPrefs().enabled);
+  const [permissionDenied, setPermissionDenied] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [notificationSound, setNotificationSound] = useState(true);
   
@@ -203,16 +210,26 @@ export function NotificationsCenter({ onExit, onNavigate }: NotificationsCenterP
 
   // Daily Reminder Settings
   const [dailyReminders, setDailyReminders] = useState(true);
-  const [reminderTime, setReminderTime] = useState('18:00');
-  const [reminderDays, setReminderDays] = useState({
-    monday: true,
-    tuesday: true,
-    wednesday: true,
-    thursday: true,
-    friday: true,
-    saturday: true,
-    sunday: false,
+  const [reminderTime, setReminderTime] = useState(() => loadPushPrefs().reminderTime);
+  const [reminderDays, setReminderDays] = useState(() => {
+    const prefs = loadPushPrefs();
+    return {
+      monday: prefs.reminderDays['monday'] ?? true,
+      tuesday: prefs.reminderDays['tuesday'] ?? true,
+      wednesday: prefs.reminderDays['wednesday'] ?? true,
+      thursday: prefs.reminderDays['thursday'] ?? true,
+      friday: prefs.reminderDays['friday'] ?? true,
+      saturday: prefs.reminderDays['saturday'] ?? true,
+      sunday: prefs.reminderDays['sunday'] ?? false,
+    };
   });
+
+  // Persist push prefs whenever relevant state changes
+  useEffect(() => {
+    if (pushNotifications) {
+      savePushPrefs({ enabled: true, reminderTime, reminderDays });
+    }
+  }, [pushNotifications, reminderTime, reminderDays]);
 
   // Email preferences (controlled)
   const [emailPrefs, setEmailPrefs] = useState({
@@ -723,16 +740,30 @@ export function NotificationsCenter({ onExit, onNavigate }: NotificationsCenterP
                           </div>
                         </div>
                         <button
-                          onClick={() => setPushNotifications(!pushNotifications)}
+                          onClick={async () => {
+                            if (!pushNotifications) {
+                              const perm = await requestPermission();
+                              if (perm === 'granted') {
+                                setPushNotifications(true);
+                                setPermissionDenied(false);
+                                savePushPrefs({ enabled: true, reminderTime, reminderDays });
+                              } else {
+                                setPermissionDenied(true);
+                              }
+                            } else {
+                              setPushNotifications(false);
+                              savePushPrefs({ enabled: false, reminderTime, reminderDays });
+                            }
+                          }}
                           className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-                          style={{ 
+                          style={{
                             background: pushNotifications ? colors.iconColor : colors.border,
                           }}
                           role="switch"
                           aria-checked={pushNotifications}
                           aria-label="Toggle push notifications"
                         >
-                          <div 
+                          <div
                             className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"
                             style={{
                               transform: pushNotifications ? 'translateX(24px)' : 'translateX(0)',
@@ -793,14 +824,14 @@ export function NotificationsCenter({ onExit, onNavigate }: NotificationsCenterP
                         <button
                           onClick={() => setNotificationSound(!notificationSound)}
                           className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-                          style={{ 
+                          style={{
                             background: notificationSound ? colors.iconColor : colors.border,
                           }}
                           role="switch"
                           aria-checked={notificationSound}
                           aria-label="Toggle notification sound"
                         >
-                          <div 
+                          <div
                             className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"
                             style={{
                               transform: notificationSound ? 'translateX(24px)' : 'translateX(0)',
@@ -808,6 +839,25 @@ export function NotificationsCenter({ onExit, onNavigate }: NotificationsCenterP
                           />
                         </button>
                       </div>
+
+                      {/* Permission denied note */}
+                      {permissionDenied && (
+                        <p className="text-xs mt-1" style={{ color: colors.errorColor }}>
+                          Notification permission was denied. Please enable it in your browser settings.
+                        </p>
+                      )}
+
+                      {/* Test Notification button */}
+                      {pushNotifications && (
+                        <button
+                          onClick={() => sendNotification('Test 🤟', 'Push notifications are working!')}
+                          className="w-full mt-2 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80"
+                          style={{ background: colors.iconBg, color: colors.iconColor }}
+                          aria-label="Send a test push notification"
+                        >
+                          Send Test Notification
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 )}

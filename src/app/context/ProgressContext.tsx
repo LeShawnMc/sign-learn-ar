@@ -1,6 +1,7 @@
 import type { UserProgress } from '../types';
 import { useAppState } from './AppStateContext';
 import { applyAchievementChecks } from './AchievementsContext';
+import { track } from '../../lib/analytics';
 
 export function useProgress() {
   const { state, setState } = useAppState();
@@ -15,7 +16,7 @@ export function useProgress() {
       }),
 
     completeLesson: (lessonId: string, score: number) => {
-      void lessonId;
+      track('lesson_completed', { lessonId, score });
       setState(prev => {
         const pointsEarned = Math.floor(score / 10) * 5;
         const next: typeof prev = {

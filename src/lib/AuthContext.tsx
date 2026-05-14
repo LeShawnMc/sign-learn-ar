@@ -8,6 +8,7 @@ import {
 } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase, signIn, signUp, signOut as sbSignOut } from './supabase';
+import { track, identifyUser, resetUser } from './analytics';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -69,7 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSubmitting(true);
     setAuthError(null);
     try {
-      await signIn(email, password);
+      const result = await signIn(email, password);
+      if (result?.user) {
+        track('user_signed_in', { method: 'email' });
+        identifyUser(result.user.id);
+      }
       // mode updates via onAuthStateChange
     } catch (err) {
       setAuthError(err instanceof Error ? err.message : 'Sign in failed');
@@ -82,7 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSubmitting(true);
     setAuthError(null);
     try {
-      await signUp(email, password);
+      const data = await signUp(email, password);
+      if (data?.user) {
+        track('user_registered', { method: 'email' });
+        identifyUser(data.user.id);
+      }
       // Supabase sends a confirmation email; session may or may not be set
       // depending on "Confirm email" setting in Supabase Auth settings
     } catch (err) {
@@ -97,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (supabase) await sbSignOut();
     } finally {
+      resetUser();
       setUser(null);
       setSession(null);
       setMode('guest');
@@ -105,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const continueAsGuest = useCallback(() => {
+    track('guest_mode_started');
     setMode('guest');
   }, []);
 

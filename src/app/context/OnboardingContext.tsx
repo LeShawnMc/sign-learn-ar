@@ -1,5 +1,6 @@
 import type { OnboardingStep, Language, LearningGoal, Lesson } from '../types';
 import { useAppState } from './AppStateContext';
+import { track } from '../../lib/analytics';
 
 export function useOnboarding() {
   const { state, setState } = useAppState();
@@ -13,8 +14,10 @@ export function useOnboarding() {
     permissionsGranted: state.permissionsGranted,
     currentLesson: state.currentLesson,
 
-    setCurrentStep: (step: OnboardingStep) =>
-      setState(prev => ({ ...prev, currentStep: step })),
+    setCurrentStep: (step: OnboardingStep) => {
+      track('onboarding_step', { step });
+      setState(prev => ({ ...prev, currentStep: step }));
+    },
 
     setSelectedLanguage: (language: Language) =>
       setState(prev => ({ ...prev, selectedLanguage: language })),
@@ -22,8 +25,12 @@ export function useOnboarding() {
     setLearningGoals: (goals: LearningGoal[]) =>
       setState(prev => ({ ...prev, learningGoals: goals })),
 
-    completeOnboarding: () =>
-      setState(prev => ({ ...prev, onboardingComplete: true, currentStep: 'complete' })),
+    completeOnboarding: () => {
+      setState(prev => {
+        track('onboarding_completed', { language: prev.selectedLanguage });
+        return { ...prev, onboardingComplete: true, currentStep: 'complete' };
+      });
+    },
 
     setHasARCapability: (hasAR: boolean) =>
       setState(prev => ({ ...prev, hasARCapability: hasAR })),
