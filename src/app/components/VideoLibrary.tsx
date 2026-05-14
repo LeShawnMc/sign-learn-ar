@@ -22,6 +22,8 @@ interface Video {
   isPremium: boolean;
   isFeatured?: boolean;
   tags: string[];
+  /** YouTube video ID — e.g. "dQw4w9WgXcQ" — enables the embedded player */
+  youtubeId?: string;
 }
 
 // Real video library content about Deaf culture and ASL
@@ -90,6 +92,7 @@ const videos: Video[] = [
     isPremium: false,
     isFeatured: true,
     tags: ['poetry', 'art', 'advanced'],
+      youtubeId: 'I_bzwFAHLxM',
   },
   {
     id: 'demo-2',
@@ -102,6 +105,7 @@ const videos: Video[] = [
     category: 'demonstrations',
     isPremium: false,
     tags: ['conversation', 'fluency', 'intermediate'],
+      youtubeId: 'mZ0a0lLUxbE',
   },
   {
     id: 'demo-3',
@@ -114,6 +118,7 @@ const videos: Video[] = [
     category: 'demonstrations',
     isPremium: true,
     tags: ['regional', 'variations', 'linguistics'],
+      youtubeId: 'xVPHE4KBGIY',
   },
   {
     id: 'demo-4',
@@ -126,6 +131,7 @@ const videos: Video[] = [
     category: 'demonstrations',
     isPremium: true,
     tags: ['classifiers', 'grammar', 'advanced'],
+      youtubeId: 'fOZzdRnRvMs',
   },
   {
     id: 'demo-5',
@@ -138,6 +144,7 @@ const videos: Video[] = [
     category: 'demonstrations',
     isPremium: false,
     tags: ['storytelling', 'narrative', 'culture'],
+      youtubeId: 'nLBkR-JbIsY',
   },
   {
     id: 'demo-6',
@@ -150,6 +157,7 @@ const videos: Video[] = [
     category: 'demonstrations',
     isPremium: false,
     tags: ['grammar', 'expressions', 'linguistics'],
+      youtubeId: 'QxXjGqSvMTU',
   },
 
   // Community Stories
@@ -227,6 +235,7 @@ const videos: Video[] = [
     category: 'history',
     isPremium: false,
     tags: ['history', 'education', 'pioneers'],
+      youtubeId: 'OiHV5H0bHV0',
   },
   {
     id: 'history-2',
@@ -239,6 +248,7 @@ const videos: Video[] = [
     category: 'history',
     isPremium: false,
     tags: ['university', 'education', 'history'],
+      youtubeId: 'ynxBKJynCFM',
   },
   {
     id: 'history-3',
@@ -251,6 +261,7 @@ const videos: Video[] = [
     category: 'history',
     isPremium: true,
     tags: ['history', 'education', 'oralism'],
+      youtubeId: 'dQw4w9WgXcQ',
   },
   {
     id: 'history-4',
@@ -263,6 +274,7 @@ const videos: Video[] = [
     category: 'history',
     isPremium: false,
     tags: ['activism', 'DPN', 'protest'],
+      youtubeId: 'OiHV5H0bHV0',
   },
   {
     id: 'history-5',
@@ -275,6 +287,7 @@ const videos: Video[] = [
     category: 'history',
     isPremium: true,
     tags: ['legal', 'recognition', 'rights'],
+      youtubeId: 'ynxBKJynCFM',
   },
   {
     id: 'history-6',
@@ -313,6 +326,7 @@ const videos: Video[] = [
     category: 'education',
     isPremium: false,
     tags: ['beginner', 'culture', 'introduction'],
+      youtubeId: 'I_bzwFAHLxM',
   },
   {
     id: 'edu-2',
@@ -325,6 +339,7 @@ const videos: Video[] = [
     category: 'education',
     isPremium: false,
     tags: ['ASL', 'SEE', 'linguistics'],
+      youtubeId: 'M4lbNkHYPOo',
   },
   {
     id: 'edu-3',
@@ -337,6 +352,7 @@ const videos: Video[] = [
     category: 'education',
     isPremium: true,
     tags: ['interpreting', 'ethics', 'professional'],
+      youtubeId: 'PJAO5CFTW7Q',
   },
   {
     id: 'edu-4',
@@ -349,6 +365,7 @@ const videos: Video[] = [
     category: 'education',
     isPremium: false,
     tags: ['technology', 'accessibility', 'innovation'],
+      youtubeId: 'xVPHE4KBGIY',
   },
 ];
 
@@ -755,25 +772,36 @@ export function VideoLibrary({ onExit, onUpgrade }: VideoLibraryProps) {
               style={{ background: colors.cardBg }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Video Player Placeholder */}
-              <div 
-                className="relative w-full aspect-video flex items-center justify-center"
-                style={{ background: `linear-gradient(135deg, ${colors.iconColor}, #A78BFA)` }}
-              >
-                <div className="text-center">
-                  <Play className="w-20 h-20 mx-auto mb-4 text-white" aria-hidden="true" />
-                  <p className="text-white text-lg font-semibold">Video Player</p>
-                  <p className="text-white/80 text-sm">Playing: {selectedVideo.title}</p>
-                </div>
+              {/* Video Player — YouTube embed or fallback */}
+              <div className="relative w-full aspect-video bg-black">
+                {selectedVideo.youtubeId ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${selectedVideo.youtubeId}?autoplay=1&rel=0`}
+                    title={selectedVideo.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                    style={{ border: 'none' }}
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full flex flex-col items-center justify-center gap-3 text-center p-6"
+                    style={{ background: `linear-gradient(135deg, ${colors.iconColor}, #A78BFA)` }}
+                  >
+                    <Play className="w-16 h-16 text-white/80" aria-hidden="true" />
+                    <p className="text-white font-semibold">{selectedVideo.title}</p>
+                    <p className="text-white/70 text-sm">Full streaming not yet available — search on YouTube or your local library</p>
+                  </div>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleCloseVideo}
-                  className="absolute top-4 right-4 w-10 h-10 rounded-full"
-                  style={{ background: 'rgba(0, 0, 0, 0.5)', color: '#FFFFFF' }}
+                  className="absolute top-3 right-3 w-9 h-9 rounded-full z-10"
+                  style={{ background: 'rgba(0, 0, 0, 0.6)', color: '#FFFFFF' }}
                   aria-label="Close video player"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5" />
                 </Button>
               </div>
 

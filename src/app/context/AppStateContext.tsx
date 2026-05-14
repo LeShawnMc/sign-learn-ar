@@ -108,12 +108,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_IN' && session?.user) {
         const remote = await loadProgress(session.user.id);
         if (remote) {
-          // Remote wins if it has more progress (higher totalPoints)
-          setState(prev =>
-            (remote.userProgress?.totalPoints ?? 0) >= (prev.userProgress?.totalPoints ?? 0)
-              ? { ...DEFAULT_STATE, ...remote, userProgress: { ...DEFAULT_STATE.userProgress, ...remote.userProgress } }
-              : prev
-          );
+          setState(prev => {
+            // Never interrupt active onboarding — local state takes priority
+            // until onboarding is complete on this device
+            if (!prev.onboardingComplete && !remote.onboardingComplete) {
+              return prev;
+            }
+            // Remote completed onboarding but local hasn't (different device) — use remote
+            if (remote.onboardingComplete && !prev.onboardingComplete) {
+              return { ...DEFAULT_STATE, ...remote, userProgress: { ...DEFAULT_STATE.userProgress, ...remote.userProgress } };
+            }
+            // Both completed — keep whichever has more progress
+            if ((remote.userProgress?.totalPoints ?? 0) > (prev.userProgress?.totalPoints ?? 0)) {
+              return { ...DEFAULT_STATE, ...remote, userProgress: { ...DEFAULT_STATE.userProgress, ...remote.userProgress } };
+            }
+            return prev;
+          });
         }
       }
     });

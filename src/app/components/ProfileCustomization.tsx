@@ -1,41 +1,16 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import QRCode from 'qrcode';
 import { Button } from './ui/button';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../../lib/AuthContext';
+import { saveProfile, loadProfile, saveProfileLocal, loadProfileLocal, type UserProfile } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  X, 
-  User, 
-  Mail, 
-  Phone, 
-  AtSign,
-  Camera,
-  Edit3,
-  Check,
-  Globe,
-  Lock,
-  Eye,
-  EyeOff,
-  Share2,
-  Copy,
-  Facebook,
-  Twitter,
-  Link2,
-  MessageCircle,
-  Download,
-  QrCode,
-  Shield,
-  Bell,
-  Users,
-  Heart,
-  TrendingUp,
-  Award,
-  Target,
-  Calendar,
-  MapPin,
-  Briefcase,
-  GraduationCap,
-  Languages,
+import {
+  X, User, Mail, Phone, AtSign, Camera, Edit3, Check, Globe, Lock,
+  Share2, Copy, Facebook, Twitter, MessageCircle, QrCode, Users,
+  Heart, TrendingUp, Award, Target, MapPin, Briefcase, GraduationCap,
+  CheckCircle, AlertCircle, Loader2,
 } from 'lucide-react';
 
 interface ProfileCustomizationProps {
@@ -57,200 +32,317 @@ const avatarOptions = [
   { id: 'avatar-12', emoji: '🐼', name: 'Panda' },
 ];
 
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
 export function ProfileCustomization({ onExit }: ProfileCustomizationProps) {
   const { theme } = useTheme();
   const { userProgress } = useApp();
+  const { user, mode } = useAuth();
 
-  // Profile Information State
-  const [firstName, setFirstName] = useState('Sarah');
-  const [lastName, setLastName] = useState('Johnson');
-  const [username, setUsername] = useState('sarah_signs');
-  const [email, setEmail] = useState('sarah.johnson@email.com');
-  const [phone, setPhone] = useState('+1 (555) 123-4567');
-  const [bio, setBio] = useState('ASL learner passionate about connecting with the Deaf community. Always eager to learn and practice!');
-  const [location, setLocation] = useState('San Francisco, CA');
-  const [occupation, setOccupation] = useState('Software Engineer');
-  const [education, setEducation] = useState('Stanford University');
+  // ── Derive defaults from auth ──────────────────────────────────────────────
+  const authEmail = user?.email ?? '';
+  const authUsername = authEmail
+    ? authEmail.split('@')[0].replace(/[^a-z0-9_]/gi, '_')
+    : 'learner';
 
-  // Learning Goals State
-  const [learningGoals, setLearningGoals] = useState([
+  // ── Form state ─────────────────────────────────────────────────────────────
+  const [firstName, setFirstName]     = useState('');
+  const [lastName, setLastName]       = useState('');
+  const [username, setUsername]       = useState(authUsername);
+  const [email, setEmail]             = useState(authEmail);
+  const [phone, setPhone]             = useState('');
+  const [bio, setBio]                 = useState('');
+  const [location, setLocation]       = useState('');
+  const [occupation, setOccupation]   = useState('');
+  const [education, setEducation]     = useState('');
+
+  // ── Learning goals ─────────────────────────────────────────────────────────
+  const [learningGoals, setLearningGoals] = useState<string[]>([
     'Achieve conversational fluency in ASL',
     'Complete all beginner and intermediate courses',
     'Practice daily for 30 minutes',
-    'Connect with native signers',
   ]);
   const [newGoal, setNewGoal] = useState('');
 
-  // Avatar State
+  // ── Avatar / photo ─────────────────────────────────────────────────────────
   const [selectedAvatar, setSelectedAvatar] = useState('avatar-1');
+  const [photoData, setPhotoData]           = useState<string | null>(null); // base64
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Privacy Settings State
+  // ── Privacy settings ───────────────────────────────────────────────────────
   const [profileVisibility, setProfileVisibility] = useState<'public' | 'friends' | 'private'>('public');
-  const [showEmail, setShowEmail] = useState(false);
-  const [showPhone, setShowPhone] = useState(false);
-  const [showProgress, setShowProgress] = useState(true);
-  const [showStreak, setShowStreak] = useState(true);
-  const [showBadges, setShowBadges] = useState(true);
-  const [allowMessages, setAllowMessages] = useState(true);
+  const [showEmail, setShowEmail]                 = useState(false);
+  const [showPhone, setShowPhone]                 = useState(false);
+  const [showProgress, setShowProgress]           = useState(true);
+  const [showStreak, setShowStreak]               = useState(true);
+  const [showBadges, setShowBadges]               = useState(true);
+  const [showActivity, setShowActivity]           = useState(true);
+  const [allowMessages, setAllowMessages]         = useState(true);
   const [allowFriendRequests, setAllowFriendRequests] = useState(true);
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
-  const [showActivity, setShowActivity] = useState(true);
-  const [allowTagging, setAllowTagging] = useState(true);
+  const [allowTagging, setAllowTagging]           = useState(true);
 
-  // Share Profile State
-  const [showShareModal, setShowShareModal] = useState(false);
+  // ── UI state ───────────────────────────────────────────────────────────────
+  const [saveStatus, setSaveStatus]   = useState<SaveStatus>('idle');
+  const [saveError, setSaveError]     = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrDataUrl, setQrDataUrl]     = useState('');
 
-  // Theme-aware colors
-  const colors = theme === 'dark'
-    ? {
-        bg: 'var(--color-bg-deep)',
-        cardBg: 'var(--color-bg-card)',
-        cardHover: '#252541',
-        textPrimary: 'var(--color-text)',
-        textSecondary: 'var(--color-text-muted)',
-        textTertiary: '#64748B',
-        border: 'rgba(148, 163, 184, 0.2)',
-        iconBg: 'rgba(0, 245, 255, 0.1)',
-        iconColor: 'var(--color-cyan)',
-        accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: 'var(--color-purple)',
-        successBg: 'rgba(34, 197, 94, 0.1)',
-        successColor: '#22C55E',
-        warningBg: 'rgba(251, 191, 36, 0.1)',
-        warningColor: '#FBD500',
-        errorBg: 'rgba(239, 68, 68, 0.1)',
-        errorColor: '#EF4444',
-        blur: 'none',
-        shadow: 'none',
-        glassBorder: 'none',
+  const profileUrl = `https://signlearnar.com/@${username || authUsername}`;
+
+  // ── Load saved profile on mount ────────────────────────────────────────────
+  useEffect(() => {
+    const applyProfile = (p: UserProfile) => {
+      if (p.first_name)         setFirstName(p.first_name);
+      if (p.last_name)          setLastName(p.last_name);
+      if (p.username)           setUsername(p.username);
+      if (p.bio)                setBio(p.bio);
+      if (p.location)           setLocation(p.location);
+      if (p.occupation)         setOccupation(p.occupation);
+      if (p.education)          setEducation(p.education);
+      if (p.phone)              setPhone(p.phone);
+      if (p.avatar_id)          setSelectedAvatar(p.avatar_id);
+      if (p.avatar_data)        setPhotoData(p.avatar_data);
+      if (p.profile_visibility) setProfileVisibility(p.profile_visibility);
+      if (p.learning_goals)     setLearningGoals(p.learning_goals);
+      if (typeof p.show_email         === 'boolean') setShowEmail(p.show_email);
+      if (typeof p.show_phone         === 'boolean') setShowPhone(p.show_phone);
+      if (typeof p.show_progress      === 'boolean') setShowProgress(p.show_progress);
+      if (typeof p.show_streak        === 'boolean') setShowStreak(p.show_streak);
+      if (typeof p.show_badges        === 'boolean') setShowBadges(p.show_badges);
+      if (typeof p.show_activity      === 'boolean') setShowActivity(p.show_activity);
+      if (typeof p.allow_messages     === 'boolean') setAllowMessages(p.allow_messages);
+      if (typeof p.allow_friend_requests === 'boolean') setAllowFriendRequests(p.allow_friend_requests);
+      if (typeof p.show_on_leaderboard=== 'boolean') setShowOnLeaderboard(p.show_on_leaderboard);
+      if (typeof p.allow_tagging      === 'boolean') setAllowTagging(p.allow_tagging);
+    };
+
+    // Load local immediately, then try remote
+    const local = loadProfileLocal();
+    if (local) applyProfile(local);
+
+    if (user?.id) {
+      loadProfile(user.id).then(remote => {
+        if (remote) applyProfile(remote);
+      });
+    }
+  }, [user?.id]);
+
+  // ── Generate QR code when modal opens ─────────────────────────────────────
+  useEffect(() => {
+    if (!showQrModal) return;
+    QRCode.toDataURL(profileUrl, {
+      width: 280,
+      margin: 2,
+      color: { dark: '#0F0F23', light: '#F8FAFC' },
+    }).then(setQrDataUrl).catch(() => setQrDataUrl(''));
+  }, [showQrModal, profileUrl]);
+
+  // ── Save ───────────────────────────────────────────────────────────────────
+  const handleSave = useCallback(async () => {
+    setSaveStatus('saving');
+    setSaveError('');
+
+    const profile: UserProfile = {
+      first_name: firstName, last_name: lastName, username, bio, location,
+      occupation, education, phone, avatar_id: selectedAvatar,
+      avatar_data: photoData ?? undefined,
+      profile_visibility: profileVisibility, learning_goals: learningGoals,
+      show_email: showEmail, show_phone: showPhone, show_progress: showProgress,
+      show_streak: showStreak, show_badges: showBadges, show_activity: showActivity,
+      allow_messages: allowMessages, allow_friend_requests: allowFriendRequests,
+      show_on_leaderboard: showOnLeaderboard, allow_tagging: allowTagging,
+      updated_at: new Date().toISOString(),
+    };
+
+    try {
+      if (user?.id) {
+        await saveProfile(user.id, profile);
+      } else {
+        saveProfileLocal(profile);
       }
-    : {
-        bg: 'linear-gradient(135deg, #E0F2FE 0%, #EDE9FE 50%, #FCE7F3 100%)',
-        cardBg: 'rgba(255, 255, 255, 0.6)',
-        cardHover: 'rgba(255, 255, 255, 0.8)',
-        textPrimary: '#0F172A',
-        textSecondary: '#334155',
-        textTertiary: '#64748B',
-        border: 'rgba(255, 255, 255, 0.6)',
-        iconBg: 'rgba(14, 165, 233, 0.12)',
-        iconColor: '#0EA5E9',
-        accentBg: 'rgba(168, 85, 247, 0.1)',
-        accentColor: 'var(--color-purple)',
-        successBg: 'rgba(34, 197, 94, 0.1)',
-        successColor: '#22C55E',
-        warningBg: 'rgba(251, 191, 36, 0.1)',
-        warningColor: '#F59E0B',
-        errorBg: 'rgba(239, 68, 68, 0.1)',
-        errorColor: '#EF4444',
-        blur: 'blur(20px)',
-        shadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
-        glassBorder: '1px solid rgba(255, 255, 255, 0.6)',
-      };
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2500);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Save failed');
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
+  }, [
+    firstName, lastName, username, bio, location, occupation, education, phone,
+    selectedAvatar, photoData, profileVisibility, learningGoals,
+    showEmail, showPhone, showProgress, showStreak, showBadges, showActivity,
+    allowMessages, allowFriendRequests, showOnLeaderboard, allowTagging, user?.id,
+  ]);
 
-  const profileUrl = `https://signlearnar.com/@${username}`;
+  // ── Photo upload ──────────────────────────────────────────────────────────
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Photo must be under 5 MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPhotoData(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
+  // ── Goals ─────────────────────────────────────────────────────────────────
   const handleAddGoal = () => {
     if (newGoal.trim()) {
-      setLearningGoals([...learningGoals, newGoal.trim()]);
+      setLearningGoals(prev => [...prev, newGoal.trim()]);
       setNewGoal('');
     }
   };
 
   const handleRemoveGoal = (index: number) => {
-    setLearningGoals(learningGoals.filter((_, i) => i !== index));
+    setLearningGoals(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleCopyProfileLink = () => {
-    navigator.clipboard.writeText(profileUrl);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
+  // ── Share ─────────────────────────────────────────────────────────────────
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(profileUrl).then(() => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    });
   };
 
-  const handleShareToSocial = (_platform: string) => {
-    // Simulate sharing
+  const handleShareToSocial = (platform: string) => {
+    const text = `Check out my ASL learning profile on Sign Learn AR!`;
+    const encodedUrl  = encodeURIComponent(profileUrl);
+    const encodedText = encodeURIComponent(text);
+
+    const urls: Record<string, string> = {
+      facebook:  `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      twitter:   `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+      whatsapp:  `https://wa.me/?text=${encodeURIComponent(text + ' ' + profileUrl)}`,
+    };
+
+    // Use Web Share API on mobile if available
+    if (platform === 'native' && navigator.share) {
+      navigator.share({ title: 'My Sign Learn AR Profile', text, url: profileUrl });
+      return;
+    }
+
+    if (urls[platform]) window.open(urls[platform], '_blank', 'noopener,noreferrer');
   };
+
+  // ── Colors ─────────────────────────────────────────────────────────────────
+  const colors = theme === 'dark'
+    ? {
+        bg: 'var(--color-bg-deep)', cardBg: 'var(--color-bg-card)', cardHover: '#252541',
+        textPrimary: 'var(--color-text)', textSecondary: 'var(--color-text-muted)',
+        textTertiary: '#64748B', border: 'rgba(148,163,184,0.2)',
+        iconBg: 'rgba(0,245,255,0.1)', iconColor: 'var(--color-cyan)',
+        blur: 'none', shadow: 'none', glassBorder: 'none',
+        errorColor: '#EF4444', successColor: '#22C55E',
+      }
+    : {
+        bg: 'linear-gradient(135deg,#E0F2FE 0%,#EDE9FE 50%,#FCE7F3 100%)',
+        cardBg: 'rgba(255,255,255,0.6)', cardHover: 'rgba(255,255,255,0.8)',
+        textPrimary: '#0F172A', textSecondary: '#334155', textTertiary: '#64748B',
+        border: 'rgba(255,255,255,0.6)', iconBg: 'rgba(14,165,233,0.12)',
+        iconColor: '#0EA5E9', blur: 'blur(20px)',
+        shadow: '0 8px 32px rgba(31,38,135,0.15)', glassBorder: '1px solid rgba(255,255,255,0.6)',
+        errorColor: '#EF4444', successColor: '#22C55E',
+      };
 
   const selectedAvatarData = avatarOptions.find(a => a.id === selectedAvatar);
+  const cardStyle = {
+    background: colors.cardBg, backdropFilter: colors.blur,
+    WebkitBackdropFilter: colors.blur, border: colors.glassBorder, boxShadow: colors.shadow,
+  };
+  const inputStyle = { background: colors.cardHover, color: colors.textPrimary, border: colors.glassBorder };
+
+  // Save button label / icon
+  const saveLabel = saveStatus === 'saving' ? 'Saving…'
+    : saveStatus === 'saved'  ? 'Saved!'
+    : saveStatus === 'error'  ? 'Error'
+    : 'Save';
+  const SaveIcon = saveStatus === 'saving' ? Loader2
+    : saveStatus === 'saved'  ? CheckCircle
+    : saveStatus === 'error'  ? AlertCircle
+    : Check;
 
   return (
-    <div 
-      className="h-full flex flex-col"
-      style={{ background: colors.bg, color: colors.textPrimary }}
-      role="main"
-      aria-labelledby="profile-customization-title"
-    >
+    <div className="h-full flex flex-col" style={{ background: colors.bg, color: colors.textPrimary }}
+      role="main" aria-labelledby="profile-title">
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        aria-hidden="true"
+        onChange={handlePhotoSelect}
+      />
+
       {/* Header */}
-      <div 
-        className="p-4 sm:p-6 border-b"
-        style={{ borderBottomColor: colors.border }}
-      >
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onExit}
-            style={{ color: colors.textSecondary }}
-            aria-label="Close profile customization"
-            className="flex-shrink-0"
-          >
-            <X className="w-6 h-6" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h1 
-              id="profile-customization-title" 
-              className="text-xl sm:text-2xl font-bold truncate"
-              style={{ fontFamily: 'Poppins, sans-serif' }}
-            >
-              Edit Profile
-            </h1>
-            <p className="text-sm truncate" style={{ color: colors.textSecondary }}>
-              Customize your profile and privacy
-            </p>
-          </div>
-          <Button
-            className="h-9 sm:h-10 px-4 sm:px-6 rounded-full font-semibold text-sm flex-shrink-0"
-            style={{
-              background: colors.iconColor,
-              color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
-            }}
-            aria-label="Save profile changes"
-          >
-            <Check className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Save</span>
-          </Button>
+      <div className="p-4 border-b flex items-center gap-3 flex-shrink-0" style={{ borderBottomColor: colors.border }}>
+        <Button variant="ghost" size="icon" onClick={onExit} style={{ color: colors.textSecondary }} aria-label="Close">
+          <X className="w-6 h-6" />
+        </Button>
+        <div className="flex-1">
+          <h1 id="profile-title" className="text-xl font-bold">Edit Profile</h1>
+          <p className="text-sm" style={{ color: colors.textSecondary }}>Customize your profile and privacy</p>
         </div>
+        <Button
+          onClick={handleSave}
+          disabled={saveStatus === 'saving'}
+          className="h-10 px-5 rounded-full font-semibold text-sm flex items-center gap-2 disabled:opacity-60"
+          style={{
+            background: saveStatus === 'saved' ? colors.successColor
+              : saveStatus === 'error' ? colors.errorColor
+              : colors.iconColor,
+            color: theme === 'dark' ? 'var(--color-bg-deep)' : '#fff',
+          }}
+          aria-label="Save profile changes"
+        >
+          <SaveIcon className={`w-4 h-4 ${saveStatus === 'saving' ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">{saveLabel}</span>
+        </Button>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-        {/* Profile Photo & Avatar Section */}
-        <section aria-labelledby="photo-avatar-heading" className="mb-6">
-          <h2 id="photo-avatar-heading" className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
+      {saveStatus === 'error' && (
+        <div className="mx-4 mt-3 px-4 py-2 rounded-lg text-sm" style={{ background: 'rgba(239,68,68,0.1)', color: colors.errorColor }}>
+          {saveError || 'Could not save profile. Changes saved locally.'}
+        </div>
+      )}
+
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+
+        {/* ── Profile Photo & Avatar ─────────────────────────────────── */}
+        <section aria-labelledby="photo-heading">
+          <h2 id="photo-heading" className="text-lg font-semibold mb-3" style={{ color: colors.textPrimary }}>
             Profile Photo & Avatar
           </h2>
-
-          <div 
-            className="rounded-xl p-6"
-            style={{
-              background: colors.cardBg,
-              backdropFilter: colors.blur,
-              WebkitBackdropFilter: colors.blur,
-              border: colors.glassBorder,
-              boxShadow: colors.shadow,
-            }}
-          >
-            {/* Current Avatar */}
-            <div className="flex items-center gap-6 mb-6">
+          <div className="rounded-xl p-5" style={cardStyle}>
+            <div className="flex items-center gap-5 mb-5">
+              {/* Avatar / photo display */}
               <div className="relative">
-                <div 
-                  className="w-24 h-24 rounded-full flex items-center justify-center text-5xl"
-                  style={{ background: colors.iconBg }}
-                  aria-label={`Current avatar: ${selectedAvatarData?.name}`}
-                >
-                  {selectedAvatarData?.emoji}
-                </div>
+                {photoData ? (
+                  <img
+                    src={photoData}
+                    alt="Profile photo"
+                    className="w-24 h-24 rounded-full object-cover"
+                    style={{ border: `3px solid ${colors.iconColor}` }}
+                  />
+                ) : (
+                  <div
+                    className="w-24 h-24 rounded-full flex items-center justify-center text-5xl"
+                    style={{ background: colors.iconBg, border: `3px solid ${colors.iconColor}` }}
+                    aria-label={`Avatar: ${selectedAvatarData?.name}`}
+                  >
+                    {selectedAvatarData?.emoji}
+                  </div>
+                )}
                 <button
                   onClick={() => setShowAvatarPicker(!showAvatarPicker)}
                   className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center"
@@ -258,68 +350,55 @@ export function ProfileCustomization({ onExit }: ProfileCustomizationProps) {
                   aria-label="Change avatar"
                   aria-expanded={showAvatarPicker}
                 >
-                  <Edit3 className="w-4 h-4" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }} />
+                  <Edit3 className="w-4 h-4" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#fff' }} />
                 </button>
               </div>
 
               <div className="flex-1">
-                <div className="font-semibold mb-1" style={{ color: colors.textPrimary }}>
-                  {firstName} {lastName}
+                <p className="font-semibold mb-1">{firstName || authUsername} {lastName}</p>
+                <p className="text-sm mb-3" style={{ color: colors.textSecondary }}>@{username || authUsername}</p>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="ghost"
+                    className="h-9 px-4 rounded-full font-semibold text-sm self-start"
+                    style={{ background: colors.iconBg, color: colors.iconColor }}
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Upload profile photo"
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    Upload Photo
+                  </Button>
+                  {photoData && (
+                    <button
+                      onClick={() => setPhotoData(null)}
+                      className="text-xs self-start"
+                      style={{ color: colors.errorColor }}
+                    >
+                      Remove photo
+                    </button>
+                  )}
                 </div>
-                <div className="text-sm mb-3" style={{ color: colors.textSecondary }}>
-                  @{username}
-                </div>
-                <Button
-                  variant="ghost"
-                  className="h-10 px-4 rounded-full font-semibold text-sm"
-                  style={{
-                    background: colors.iconBg,
-                    color: colors.iconColor,
-                  }}
-                  aria-label="Upload profile photo"
-                >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Upload Photo
-                </Button>
               </div>
             </div>
 
-            {/* Avatar Picker */}
+            {/* Avatar picker */}
             <AnimatePresence>
               {showAvatarPicker && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div 
-                    className="pt-6 border-t"
-                    style={{ borderTopColor: colors.border }}
-                  >
-                    <div className="font-semibold mb-3 text-sm" style={{ color: colors.textPrimary }}>
-                      Choose Avatar
-                    </div>
-                    <div className="grid grid-cols-6 gap-3" role="radiogroup" aria-label="Avatar selection">
-                      {avatarOptions.map((avatar) => {
-                        const isSelected = selectedAvatar === avatar.id;
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                  <div className="pt-4 border-t" style={{ borderTopColor: colors.border }}>
+                    <p className="text-sm font-semibold mb-3" style={{ color: colors.textPrimary }}>Choose Avatar</p>
+                    <div className="grid grid-cols-6 gap-2" role="radiogroup" aria-label="Avatar selection">
+                      {avatarOptions.map(av => {
+                        const sel = selectedAvatar === av.id;
                         return (
                           <button
-                            key={avatar.id}
-                            onClick={() => {
-                              setSelectedAvatar(avatar.id);
-                              setShowAvatarPicker(false);
-                            }}
+                            key={av.id}
+                            onClick={() => { setSelectedAvatar(av.id); setShowAvatarPicker(false); }}
                             className="aspect-square rounded-xl flex items-center justify-center text-3xl transition-all"
-                            style={{
-                              background: isSelected ? colors.iconBg : colors.cardHover,
-                              border: isSelected ? `2px solid ${colors.iconColor}` : 'none',
-                            }}
-                            role="radio"
-                            aria-checked={isSelected}
-                            aria-label={avatar.name}
+                            style={{ background: sel ? colors.iconBg : colors.cardHover, border: sel ? `2px solid ${colors.iconColor}` : 'none' }}
+                            role="radio" aria-checked={sel} aria-label={av.name}
                           >
-                            {avatar.emoji}
+                            {av.emoji}
                           </button>
                         );
                       })}
@@ -331,720 +410,272 @@ export function ProfileCustomization({ onExit }: ProfileCustomizationProps) {
           </div>
         </section>
 
-        {/* Personal Information Section */}
-        <section aria-labelledby="personal-info-heading" className="mb-6">
-          <h2 id="personal-info-heading" className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
+        {/* ── Personal Information ───────────────────────────────────── */}
+        <section aria-labelledby="personal-heading">
+          <h2 id="personal-heading" className="text-lg font-semibold mb-3" style={{ color: colors.textPrimary }}>
             Personal Information
           </h2>
-
-          <div 
-            className="rounded-xl p-6"
-            style={{
-              background: colors.cardBg,
-              backdropFilter: colors.blur,
-              WebkitBackdropFilter: colors.blur,
-              border: colors.glassBorder,
-              boxShadow: colors.shadow,
-            }}
-          >
-            {/* First Name */}
-            <div className="mb-4">
-              <label htmlFor="first-name" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>
-                First Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
-                <input
-                  id="first-name"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                  style={{
-                    background: colors.cardHover,
-                    color: colors.textPrimary,
-                    border: colors.glassBorder,
-                  }}
-                />
+          <div className="rounded-xl p-5 space-y-4" style={cardStyle}>
+            {[
+              { id: 'first-name', label: 'First Name',     value: firstName,   onChange: setFirstName,   icon: User,          type: 'text',  placeholder: 'Your first name' },
+              { id: 'last-name',  label: 'Last Name',      value: lastName,    onChange: setLastName,    icon: User,          type: 'text',  placeholder: 'Your last name' },
+              { id: 'username',   label: 'Username',       value: username,    onChange: setUsername,    icon: AtSign,        type: 'text',  placeholder: 'your_username' },
+              { id: 'email',      label: 'Email',          value: email,       onChange: setEmail,       icon: Mail,          type: 'email', placeholder: 'you@example.com' },
+              { id: 'phone',      label: 'Phone Number',   value: phone,       onChange: setPhone,       icon: Phone,         type: 'tel',   placeholder: '+1 (555) 000-0000' },
+              { id: 'location',   label: 'Location',       value: location,    onChange: setLocation,    icon: MapPin,        type: 'text',  placeholder: 'City, State' },
+              { id: 'occupation', label: 'Occupation',     value: occupation,  onChange: setOccupation,  icon: Briefcase,     type: 'text',  placeholder: 'Your profession' },
+              { id: 'education',  label: 'Education',      value: education,   onChange: setEducation,   icon: GraduationCap, type: 'text',  placeholder: 'School or university' },
+            ].map(({ id, label, value, onChange, icon: Icon, type, placeholder }) => (
+              <div key={id}>
+                <label htmlFor={id} className="block text-sm font-semibold mb-1.5" style={{ color: colors.textPrimary }}>{label}</label>
+                <div className="relative">
+                  <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: colors.textTertiary }} aria-hidden />
+                  <input
+                    id={id} type={type} value={value} placeholder={placeholder}
+                    onChange={e => onChange(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none"
+                    style={inputStyle}
+                  />
+                </div>
               </div>
-            </div>
-
-            {/* Last Name */}
-            <div className="mb-4">
-              <label htmlFor="last-name" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>
-                Last Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
-                <input
-                  id="last-name"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                  style={{
-                    background: colors.cardHover,
-                    color: colors.textPrimary,
-                    border: colors.glassBorder,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Username */}
-            <div className="mb-4">
-              <label htmlFor="username" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>
-                Username
-              </label>
-              <div className="relative">
-                <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                  style={{
-                    background: colors.cardHover,
-                    color: colors.textPrimary,
-                    border: colors.glassBorder,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Email */}
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                  style={{
-                    background: colors.cardHover,
-                    color: colors.textPrimary,
-                    border: colors.glassBorder,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Phone */}
-            <div className="mb-4">
-              <label htmlFor="phone" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>
-                Phone Number
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
-                <input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                  style={{
-                    background: colors.cardHover,
-                    color: colors.textPrimary,
-                    border: colors.glassBorder,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Location */}
-            <div className="mb-4">
-              <label htmlFor="location" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>
-                Location
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
-                <input
-                  id="location"
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="City, State/Country"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                  style={{
-                    background: colors.cardHover,
-                    color: colors.textPrimary,
-                    border: colors.glassBorder,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Occupation */}
-            <div className="mb-4">
-              <label htmlFor="occupation" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>
-                Occupation
-              </label>
-              <div className="relative">
-                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
-                <input
-                  id="occupation"
-                  type="text"
-                  value={occupation}
-                  onChange={(e) => setOccupation(e.target.value)}
-                  placeholder="Your profession"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                  style={{
-                    background: colors.cardHover,
-                    color: colors.textPrimary,
-                    border: colors.glassBorder,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Education */}
-            <div>
-              <label htmlFor="education" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>
-                Education
-              </label>
-              <div className="relative">
-                <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
-                <input
-                  id="education"
-                  type="text"
-                  value={education}
-                  onChange={(e) => setEducation(e.target.value)}
-                  placeholder="School or university"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm"
-                  style={{
-                    background: colors.cardHover,
-                    color: colors.textPrimary,
-                    border: colors.glassBorder,
-                  }}
-                />
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* Bio Section */}
-        <section aria-labelledby="bio-heading" className="mb-6">
-          <h2 id="bio-heading" className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
-            Bio
-          </h2>
-
-          <div 
-            className="rounded-xl p-6"
-            style={{
-              background: colors.cardBg,
-              backdropFilter: colors.blur,
-              WebkitBackdropFilter: colors.blur,
-              border: colors.glassBorder,
-              boxShadow: colors.shadow,
-            }}
-          >
-            <label htmlFor="bio" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>
-              About You
-            </label>
+        {/* ── Bio ───────────────────────────────────────────────────── */}
+        <section aria-labelledby="bio-heading">
+          <h2 id="bio-heading" className="text-lg font-semibold mb-3" style={{ color: colors.textPrimary }}>Bio</h2>
+          <div className="rounded-xl p-5" style={cardStyle}>
+            <label htmlFor="bio" className="block text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>About You</label>
             <textarea
-              id="bio"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              id="bio" value={bio} onChange={e => setBio(e.target.value)}
               placeholder="Tell others about yourself and your sign language journey..."
-              rows={4}
-              maxLength={500}
-              className="w-full px-4 py-3 rounded-xl text-sm resize-none"
-              style={{
-                background: colors.cardHover,
-                color: colors.textPrimary,
-                border: colors.glassBorder,
-              }}
+              rows={4} maxLength={500}
+              className="w-full px-4 py-3 rounded-xl text-sm resize-none outline-none"
+              style={inputStyle}
             />
-            <div className="text-xs mt-2 text-right" style={{ color: colors.textTertiary }}>
-              {bio.length}/500 characters
-            </div>
+            <p className="text-xs mt-1 text-right" style={{ color: colors.textTertiary }}>{bio.length}/500</p>
           </div>
         </section>
 
-        {/* Learning Goals Section */}
-        <section aria-labelledby="goals-heading" className="mb-6">
-          <h2 id="goals-heading" className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
-            Learning Goals
-          </h2>
-
-          <div 
-            className="rounded-xl p-6"
-            style={{
-              background: colors.cardBg,
-              backdropFilter: colors.blur,
-              WebkitBackdropFilter: colors.blur,
-              border: colors.glassBorder,
-              boxShadow: colors.shadow,
-            }}
-          >
-            {/* Goals List */}
-            <div className="space-y-3 mb-4">
-              {learningGoals.map((goal, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-3 p-3 rounded-lg"
-                  style={{ background: colors.cardHover }}
-                >
-                  <Target className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: colors.iconColor }} aria-hidden="true" />
-                  <div className="flex-1 text-sm" style={{ color: colors.textPrimary }}>
-                    {goal}
-                  </div>
-                  <button
-                    onClick={() => handleRemoveGoal(index)}
-                    className="p-1 rounded transition-colors"
-                    style={{ color: colors.errorColor }}
-                    aria-label={`Remove goal: ${goal}`}
-                  >
+        {/* ── Learning Goals ─────────────────────────────────────────── */}
+        <section aria-labelledby="goals-heading">
+          <h2 id="goals-heading" className="text-lg font-semibold mb-3" style={{ color: colors.textPrimary }}>Learning Goals</h2>
+          <div className="rounded-xl p-5" style={cardStyle}>
+            <div className="space-y-2 mb-4">
+              {learningGoals.map((goal, i) => (
+                <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: colors.cardHover }}>
+                  <Target className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: colors.iconColor }} aria-hidden />
+                  <span className="flex-1 text-sm" style={{ color: colors.textPrimary }}>{goal}</span>
+                  <button onClick={() => handleRemoveGoal(i)} style={{ color: colors.errorColor }} aria-label={`Remove: ${goal}`}>
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ))}
+              {learningGoals.length === 0 && (
+                <p className="text-sm text-center py-3" style={{ color: colors.textTertiary }}>No goals yet — add one below</p>
+              )}
             </div>
-
-            {/* Add Goal */}
             <div className="flex gap-2">
               <input
-                type="text"
-                value={newGoal}
-                onChange={(e) => setNewGoal(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddGoal()}
-                placeholder="Add a new learning goal..."
-                className="flex-1 px-4 py-3 rounded-xl text-sm"
-                style={{
-                  background: colors.cardHover,
-                  color: colors.textPrimary,
-                  border: colors.glassBorder,
-                }}
+                type="text" value={newGoal} onChange={e => setNewGoal(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddGoal()}
+                placeholder="Add a new learning goal…"
+                className="flex-1 px-4 py-3 rounded-xl text-sm outline-none"
+                style={inputStyle}
                 aria-label="New learning goal"
               />
               <Button
-                onClick={handleAddGoal}
-                disabled={!newGoal.trim()}
-                className="h-12 px-6 rounded-xl font-semibold"
-                style={{
-                  background: colors.iconColor,
-                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
-                }}
-                aria-label="Add goal"
-              >
-                Add
-              </Button>
+                onClick={handleAddGoal} disabled={!newGoal.trim()}
+                className="h-12 px-5 rounded-xl font-semibold disabled:opacity-40"
+                style={{ background: colors.iconColor, color: theme === 'dark' ? 'var(--color-bg-deep)' : '#fff' }}
+              >Add</Button>
             </div>
           </div>
         </section>
 
-        {/* Privacy Settings Section */}
-        <section aria-labelledby="privacy-heading" className="mb-6">
-          <h2 id="privacy-heading" className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
-            Privacy Settings
-          </h2>
+        {/* ── Privacy Settings ──────────────────────────────────────── */}
+        <section aria-labelledby="privacy-heading">
+          <h2 id="privacy-heading" className="text-lg font-semibold mb-3" style={{ color: colors.textPrimary }}>Privacy Settings</h2>
+          <div className="rounded-xl p-5" style={cardStyle}>
 
-          <div 
-            className="rounded-xl p-6"
-            style={{
-              background: colors.cardBg,
-              backdropFilter: colors.blur,
-              WebkitBackdropFilter: colors.blur,
-              border: colors.glassBorder,
-              boxShadow: colors.shadow,
-            }}
-          >
-            {/* Profile Visibility */}
-            <div className="mb-6">
-              <div className="font-semibold mb-3 text-sm" style={{ color: colors.textPrimary }}>
-                Profile Visibility
-              </div>
-              <div className="space-y-2" role="radiogroup" aria-label="Profile visibility">
-                {[
-                  { value: 'public', label: 'Public', description: 'Anyone can see your profile', icon: Globe },
-                  { value: 'friends', label: 'Friends Only', description: 'Only your friends can see your profile', icon: Users },
-                  { value: 'private', label: 'Private', description: 'Only you can see your profile', icon: Lock },
-                ].map((option) => {
-                  const isSelected = profileVisibility === option.value;
-                  const Icon = option.icon;
-                  return (
-                    <button
-                      key={option.value}
-                      onClick={() => setProfileVisibility(option.value as any)}
-                      className="w-full rounded-lg p-4 text-left transition-all"
-                      style={{
-                        background: isSelected ? colors.iconBg : colors.cardHover,
-                        border: isSelected ? `2px solid ${colors.iconColor}` : 'none',
-                      }}
-                      role="radio"
-                      aria-checked={isSelected}
-                      aria-label={`${option.label}, ${option.description}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className="w-5 h-5" style={{ color: isSelected ? colors.iconColor : colors.textSecondary }} aria-hidden="true" />
-                        <div className="flex-1">
-                          <div className="font-semibold text-sm mb-1" style={{ color: colors.textPrimary }}>
-                            {option.label}
-                          </div>
-                          <div className="text-xs" style={{ color: colors.textSecondary }}>
-                            {option.description}
-                          </div>
-                        </div>
-                        {isSelected && (
-                          <Check className="w-5 h-5" style={{ color: colors.iconColor }} aria-hidden="true" />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Contact Information Visibility */}
-            <div className="mb-6 pb-6 border-b" style={{ borderBottomColor: colors.border }}>
-              <div className="font-semibold mb-3 text-sm" style={{ color: colors.textPrimary }}>
-                Contact Information
-              </div>
-              
-              <div className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3 flex-1">
-                  <Mail className="w-5 h-5" style={{ color: colors.textSecondary }} aria-hidden="true" />
-                  <div>
-                    <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                      Show Email
-                    </div>
-                    <div className="text-xs" style={{ color: colors.textSecondary }}>
-                      Display email on your profile
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowEmail(!showEmail)}
-                  className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-                  style={{ 
-                    background: showEmail ? colors.iconColor : colors.border,
-                  }}
-                  role="switch"
-                  aria-checked={showEmail}
-                  aria-label="Show email on profile"
-                >
-                  <div 
-                    className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"
-                    style={{
-                      transform: showEmail ? 'translateX(24px)' : 'translateX(0)',
-                    }}
-                  />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3 flex-1">
-                  <Phone className="w-5 h-5" style={{ color: colors.textSecondary }} aria-hidden="true" />
-                  <div>
-                    <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                      Show Phone
-                    </div>
-                    <div className="text-xs" style={{ color: colors.textSecondary }}>
-                      Display phone number on your profile
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowPhone(!showPhone)}
-                  className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-                  style={{ 
-                    background: showPhone ? colors.iconColor : colors.border,
-                  }}
-                  role="switch"
-                  aria-checked={showPhone}
-                  aria-label="Show phone on profile"
-                >
-                  <div 
-                    className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"
-                    style={{
-                      transform: showPhone ? 'translateX(24px)' : 'translateX(0)',
-                    }}
-                  />
-                </button>
-              </div>
-            </div>
-
-            {/* What Others Can See */}
-            <div className="mb-6 pb-6 border-b" style={{ borderBottomColor: colors.border }}>
-              <div className="font-semibold mb-3 text-sm" style={{ color: colors.textPrimary }}>
-                What Others Can See
-              </div>
-
-              {[
-                { label: 'Show Learning Progress', value: showProgress, onChange: setShowProgress, icon: TrendingUp },
-                { label: 'Show Streak Counter', value: showStreak, onChange: setShowStreak, icon: Calendar },
-                { label: 'Show Badges & Achievements', value: showBadges, onChange: setShowBadges, icon: Award },
-                { label: 'Show Recent Activity', value: showActivity, onChange: setShowActivity, icon: Heart },
-              ].map((toggle, index) => {
-                const Icon = toggle.icon;
+            {/* Profile visibility */}
+            <p className="text-sm font-semibold mb-3" style={{ color: colors.textPrimary }}>Profile Visibility</p>
+            <div className="space-y-2 mb-6" role="radiogroup" aria-label="Profile visibility">
+              {([
+                { value: 'public',  label: 'Public',       desc: 'Anyone can see your profile',        icon: Globe },
+                { value: 'friends', label: 'Friends Only', desc: 'Only your friends can see you',       icon: Users },
+                { value: 'private', label: 'Private',      desc: 'Only you can see your profile',       icon: Lock },
+              ] as const).map(({ value, label, desc, icon: Icon }) => {
+                const sel = profileVisibility === value;
                 return (
-                  <div key={index} className="flex items-center justify-between py-3">
-                    <div className="flex items-center gap-3 flex-1">
-                      <Icon className="w-5 h-5" style={{ color: colors.textSecondary }} aria-hidden="true" />
-                      <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                        {toggle.label}
+                  <button
+                    key={value}
+                    onClick={() => setProfileVisibility(value)}
+                    className="w-full rounded-lg p-3 text-left"
+                    style={{ background: sel ? colors.iconBg : colors.cardHover, border: sel ? `2px solid ${colors.iconColor}` : 'none' }}
+                    role="radio" aria-checked={sel} aria-label={`${label}, ${desc}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-5 h-5" style={{ color: sel ? colors.iconColor : colors.textSecondary }} aria-hidden />
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm" style={{ color: colors.textPrimary }}>{label}</p>
+                        <p className="text-xs" style={{ color: colors.textSecondary }}>{desc}</p>
                       </div>
+                      {sel && <Check className="w-4 h-4" style={{ color: colors.iconColor }} />}
                     </div>
-                    <button
-                      onClick={() => toggle.onChange(!toggle.value)}
-                      className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-                      style={{ 
-                        background: toggle.value ? colors.iconColor : colors.border,
-                      }}
-                      role="switch"
-                      aria-checked={toggle.value}
-                      aria-label={toggle.label}
-                    >
-                      <div 
-                        className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"
-                        style={{
-                          transform: toggle.value ? 'translateX(24px)' : 'translateX(0)',
-                        }}
-                      />
-                    </button>
-                  </div>
+                  </button>
                 );
               })}
             </div>
 
-            {/* Interaction Settings */}
-            <div>
-              <div className="font-semibold mb-3 text-sm" style={{ color: colors.textPrimary }}>
-                Interaction Settings
-              </div>
-
-              {[
-                { label: 'Allow Direct Messages', value: allowMessages, onChange: setAllowMessages, icon: MessageCircle },
-                { label: 'Allow Friend Requests', value: allowFriendRequests, onChange: setAllowFriendRequests, icon: Users },
-                { label: 'Show on Leaderboard', value: showOnLeaderboard, onChange: setShowOnLeaderboard, icon: TrendingUp },
-                { label: 'Allow Tagging in Posts', value: allowTagging, onChange: setAllowTagging, icon: AtSign },
-              ].map((toggle, index) => {
-                const Icon = toggle.icon;
-                return (
-                  <div key={index} className="flex items-center justify-between py-3">
-                    <div className="flex items-center gap-3 flex-1">
-                      <Icon className="w-5 h-5" style={{ color: colors.textSecondary }} aria-hidden="true" />
-                      <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                        {toggle.label}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => toggle.onChange(!toggle.value)}
-                      className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-                      style={{ 
-                        background: toggle.value ? colors.iconColor : colors.border,
-                      }}
-                      role="switch"
-                      aria-checked={toggle.value}
-                      aria-label={toggle.label}
-                    >
-                      <div 
-                        className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"
-                        style={{
-                          transform: toggle.value ? 'translateX(24px)' : 'translateX(0)',
-                        }}
-                      />
-                    </button>
+            {/* Toggle rows */}
+            {[
+              { label: 'Show Email on Profile',         value: showEmail,           onChange: setShowEmail,           icon: Mail,          desc: 'Display email publicly' },
+              { label: 'Show Phone on Profile',         value: showPhone,           onChange: setShowPhone,           icon: Phone,         desc: 'Display phone publicly' },
+              { label: 'Show Learning Progress',        value: showProgress,        onChange: setShowProgress,        icon: TrendingUp,    desc: 'Others can see your stats' },
+              { label: 'Show Streak Counter',           value: showStreak,          onChange: setShowStreak,          icon: Target,        desc: 'Show streak on your profile' },
+              { label: 'Show Badges & Achievements',    value: showBadges,          onChange: setShowBadges,          icon: Award,         desc: 'Display your earned badges' },
+              { label: 'Show Recent Activity',          value: showActivity,        onChange: setShowActivity,        icon: Heart,         desc: 'Others can see what you\'ve practiced' },
+              { label: 'Allow Direct Messages',         value: allowMessages,       onChange: setAllowMessages,       icon: MessageCircle, desc: 'Let others message you' },
+              { label: 'Allow Friend Requests',         value: allowFriendRequests, onChange: setAllowFriendRequests, icon: Users,         desc: 'Let others add you as friend' },
+              { label: 'Show on Leaderboard',           value: showOnLeaderboard,   onChange: setShowOnLeaderboard,   icon: TrendingUp,    desc: 'Appear in global rankings' },
+              { label: 'Allow Tagging in Posts',        value: allowTagging,        onChange: setAllowTagging,        icon: AtSign,        desc: 'Let others tag you in posts' },
+            ].map(({ label, value, onChange, icon: Icon, desc }) => (
+              <div key={label} className="flex items-center justify-between py-3 border-t" style={{ borderTopColor: colors.border }}>
+                <div className="flex items-center gap-3 flex-1 mr-4">
+                  <Icon className="w-4 h-4 flex-shrink-0" style={{ color: colors.textSecondary }} aria-hidden />
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: colors.textPrimary }}>{label}</p>
+                    <p className="text-xs" style={{ color: colors.textTertiary }}>{desc}</p>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+                <button
+                  onClick={() => onChange(!value)}
+                  className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
+                  style={{ background: value ? colors.iconColor : 'rgba(148,163,184,0.3)' }}
+                  role="switch" aria-checked={value} aria-label={label}
+                >
+                  <div
+                    className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"
+                    style={{ transform: value ? 'translateX(24px)' : 'translateX(0)' }}
+                  />
+                </button>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* Share Profile Section */}
-        <section aria-labelledby="share-heading" className="mb-6">
-          <h2 id="share-heading" className="text-lg font-semibold mb-4" style={{ color: colors.textPrimary }}>
-            Share Profile
-          </h2>
-
-          <div 
-            className="rounded-xl p-6"
-            style={{
-              background: colors.cardBg,
-              backdropFilter: colors.blur,
-              WebkitBackdropFilter: colors.blur,
-              border: colors.glassBorder,
-              boxShadow: colors.shadow,
-            }}
-          >
+        {/* ── Share Profile ─────────────────────────────────────────── */}
+        <section aria-labelledby="share-heading" className="pb-6">
+          <h2 id="share-heading" className="text-lg font-semibold mb-3" style={{ color: colors.textPrimary }}>Share Profile</h2>
+          <div className="rounded-xl p-5" style={cardStyle}>
             {/* Profile URL */}
-            <div className="mb-4">
-              <div className="font-semibold mb-2 text-sm" style={{ color: colors.textPrimary }}>
-                Your Profile URL
-              </div>
-              <div className="flex flex-col gap-2">
-                <div 
-                  className="flex-1 px-4 py-3 rounded-xl text-sm"
-                  style={{
-                    background: colors.cardHover,
-                    color: colors.textSecondary,
-                  }}
+            <p className="text-sm font-semibold mb-2" style={{ color: colors.textPrimary }}>Your Profile URL</p>
+            <div
+              className="px-4 py-3 rounded-xl text-sm mb-3 break-all"
+              style={{ background: colors.cardHover, color: colors.textSecondary }}
+            >
+              {profileUrl}
+            </div>
+            <Button
+              onClick={handleCopyLink}
+              className="w-full h-11 rounded-xl font-semibold mb-5"
+              style={{
+                background: copySuccess ? 'rgba(34,197,94,0.15)' : colors.iconBg,
+                color: copySuccess ? colors.successColor : colors.iconColor,
+              }}
+              aria-label={copySuccess ? 'Copied!' : 'Copy profile link'}
+            >
+              {copySuccess ? <><CheckCircle className="w-4 h-4 mr-2" />Copied!</> : <><Copy className="w-4 h-4 mr-2" />Copy Link</>}
+            </Button>
+
+            {/* Share via */}
+            <p className="text-sm font-semibold mb-3" style={{ color: colors.textPrimary }}>Share Via</p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { id: 'facebook',  label: 'Facebook',  icon: Facebook,       color: '#1877F2' },
+                { id: 'twitter',   label: 'Twitter/X', icon: Twitter,        color: '#1DA1F2' },
+                { id: 'whatsapp',  label: 'WhatsApp',  icon: MessageCircle,  color: '#25D366' },
+                { id: 'qr',        label: 'QR Code',   icon: QrCode,         color: colors.iconColor },
+              ].map(({ id, label, icon: Icon, color }) => (
+                <button
+                  key={id}
+                  onClick={() => id === 'qr' ? setShowQrModal(true) : handleShareToSocial(id)}
+                  className="flex items-center justify-center gap-2 p-4 rounded-xl transition-colors"
+                  style={{ background: colors.cardHover }}
+                  onMouseEnter={e => (e.currentTarget.style.background = colors.iconBg)}
+                  onMouseLeave={e => (e.currentTarget.style.background = colors.cardHover)}
+                  aria-label={`Share on ${label}`}
                 >
-                  {profileUrl}
-                </div>
-                <Button
-                  onClick={handleCopyProfileLink}
-                  className="h-12 px-6 rounded-xl font-semibold"
-                  style={{
-                    background: copySuccess ? colors.successBg : colors.iconBg,
-                    color: copySuccess ? colors.successColor : colors.iconColor,
-                  }}
-                  aria-label={copySuccess ? 'Link copied' : 'Copy profile link'}
-                >
-                  {copySuccess ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy
-                    </>
-                  )}
-                </Button>
-              </div>
+                  <Icon className="w-5 h-5" style={{ color }} aria-hidden />
+                  <span className="font-semibold text-sm" style={{ color: colors.textPrimary }}>{label}</span>
+                </button>
+              ))}
             </div>
 
-            {/* Share Options */}
-            <div>
-              <div className="font-semibold mb-3 text-sm" style={{ color: colors.textPrimary }}>
-                Share Via
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => handleShareToSocial('facebook')}
-                  className="flex items-center justify-center gap-2 p-4 rounded-xl transition-colors"
-                  style={{ background: colors.cardHover }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = colors.iconBg}
-                  onMouseLeave={(e) => e.currentTarget.style.background = colors.cardHover}
-                  aria-label="Share on Facebook"
-                >
-                  <Facebook className="w-5 h-5" style={{ color: '#1877F2' }} aria-hidden="true" />
-                  <span className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                    Facebook
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => handleShareToSocial('twitter')}
-                  className="flex items-center justify-center gap-2 p-4 rounded-xl transition-colors"
-                  style={{ background: colors.cardHover }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = colors.iconBg}
-                  onMouseLeave={(e) => e.currentTarget.style.background = colors.cardHover}
-                  aria-label="Share on Twitter"
-                >
-                  <Twitter className="w-5 h-5" style={{ color: '#1DA1F2' }} aria-hidden="true" />
-                  <span className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                    Twitter
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => handleShareToSocial('whatsapp')}
-                  className="flex items-center justify-center gap-2 p-4 rounded-xl transition-colors"
-                  style={{ background: colors.cardHover }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = colors.iconBg}
-                  onMouseLeave={(e) => e.currentTarget.style.background = colors.cardHover}
-                  aria-label="Share on WhatsApp"
-                >
-                  <MessageCircle className="w-5 h-5" style={{ color: '#25D366' }} aria-hidden="true" />
-                  <span className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                    WhatsApp
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setShowShareModal(true)}
-                  className="flex items-center justify-center gap-2 p-4 rounded-xl transition-colors"
-                  style={{ background: colors.cardHover }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = colors.iconBg}
-                  onMouseLeave={(e) => e.currentTarget.style.background = colors.cardHover}
-                  aria-label="Show QR code"
-                >
-                  <QrCode className="w-5 h-5" style={{ color: colors.iconColor }} aria-hidden="true" />
-                  <span className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                    QR Code
-                  </span>
-                </button>
-              </div>
-            </div>
+            {/* Native share (mobile) */}
+            {typeof navigator !== 'undefined' && 'share' in navigator && (
+              <button
+                onClick={() => handleShareToSocial('native')}
+                className="w-full mt-3 flex items-center justify-center gap-2 p-4 rounded-xl"
+                style={{ background: colors.iconBg, color: colors.iconColor }}
+                aria-label="Share via native share sheet"
+              >
+                <Share2 className="w-5 h-5" />
+                <span className="font-semibold text-sm">Share…</span>
+              </button>
+            )}
           </div>
         </section>
       </div>
 
-      {/* QR Code Modal */}
+      {/* ── QR Code Modal ─────────────────────────────────────────────── */}
       <AnimatePresence>
-        {showShareModal && (
+        {showQrModal && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-            onClick={() => setShowShareModal(false)}
-            role="dialog"
-            aria-labelledby="qr-code-title"
-            aria-modal="true"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50"
+            onClick={() => setShowQrModal(false)}
+            role="dialog" aria-labelledby="qr-title" aria-modal
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="rounded-2xl p-6 max-w-sm w-full"
-              style={{
-                background: colors.cardBg,
-                backdropFilter: colors.blur,
-                WebkitBackdropFilter: colors.blur,
-              }}
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="rounded-2xl p-6 max-w-xs w-full"
+              style={{ background: colors.cardBg, backdropFilter: colors.blur, WebkitBackdropFilter: colors.blur }}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 id="qr-code-title" className="text-lg font-semibold" style={{ color: colors.textPrimary }}>
-                  Share Profile
+                <h3 id="qr-title" className="text-lg font-semibold" style={{ color: colors.textPrimary }}>
+                  Scan to View Profile
                 </h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowShareModal(false)}
-                  aria-label="Close QR code modal"
-                >
+                <Button variant="ghost" size="icon" onClick={() => setShowQrModal(false)} aria-label="Close">
                   <X className="w-5 h-5" />
                 </Button>
               </div>
 
-              {/* QR Code Placeholder */}
-              <div 
-                className="aspect-square rounded-xl flex items-center justify-center mb-4"
-                style={{ background: colors.cardHover }}
-                role="img"
-                aria-label="QR code for profile"
-              >
-                <div className="text-center">
-                  <QrCode className="w-48 h-48 mx-auto mb-3" style={{ color: colors.textTertiary }} aria-hidden="true" />
-                  <p className="text-sm" style={{ color: colors.textSecondary }}>
-                    Scan to view profile
-                  </p>
-                </div>
+              {/* Real QR code */}
+              <div className="aspect-square rounded-xl flex items-center justify-center mb-4 overflow-hidden"
+                style={{ background: '#F8FAFC' }}>
+                {qrDataUrl ? (
+                  <img src={qrDataUrl} alt={`QR code for ${profileUrl}`} className="w-full h-full object-contain p-2" />
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-10 h-10 animate-spin" style={{ color: colors.iconColor }} />
+                    <p className="text-sm" style={{ color: colors.textSecondary }}>Generating…</p>
+                  </div>
+                )}
               </div>
 
+              <p className="text-xs text-center mb-4 break-all" style={{ color: colors.textSecondary }}>{profileUrl}</p>
+
               <Button
-                onClick={handleCopyProfileLink}
-                className="w-full h-12 rounded-xl font-semibold"
-                style={{
-                  background: colors.iconColor,
-                  color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF',
-                }}
-                aria-label="Copy profile link"
+                onClick={handleCopyLink}
+                className="w-full h-11 rounded-xl font-semibold"
+                style={{ background: colors.iconColor, color: theme === 'dark' ? 'var(--color-bg-deep)' : '#fff' }}
               >
                 <Copy className="w-4 h-4 mr-2" />
-                Copy Profile Link
+                {copySuccess ? 'Copied!' : 'Copy Link'}
               </Button>
             </motion.div>
           </motion.div>
