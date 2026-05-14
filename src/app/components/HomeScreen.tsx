@@ -162,6 +162,7 @@ export function HomeScreen() {
   const [showConversationScenarios, setShowConversationScenarios] = useState(false);
   const [showVoiceToSignTranslation, setShowVoiceToSignTranslation] = useState(false);
   const [showDeafCommunityEvents, setShowDeafCommunityEvents] = useState(false);
+  const [showAchievementsBadges, setShowAchievementsBadges] = useState(false);
 
   if (selectedLesson) {
     const lesson = lessons.find(l => l.id === selectedLesson);
@@ -190,8 +191,8 @@ export function HomeScreen() {
   // Show vocabulary tagging flow
   if (showVocabularyTagging) {
     return (
-      <LazyScreen><VocabularyTaggingFlow 
-        onExit={() => setShowVocabularyTagging(false)}
+      <LazyScreen><VocabularyTaggingFlow
+        onExit={() => { setShowVocabularyTagging(false); setActiveTab('home'); }}
       />
       </LazyScreen>
     );
@@ -251,10 +252,11 @@ export function HomeScreen() {
   // Show lesson library screen
   if (showLessonLibrary) {
     return (
-      <LazyScreen><LessonLibrary 
-        onExit={() => setShowLessonLibrary(false)}
+      <LazyScreen><LessonLibrary
+        onExit={() => { setShowLessonLibrary(false); setActiveTab('home'); }}
         onUpgrade={() => {
           setShowLessonLibrary(false);
+          setActiveTab('home');
           setShowUpgrade(true);
         }}
       />
@@ -347,8 +349,8 @@ export function HomeScreen() {
   // Show community feed screen
   if (showCommunityFeed) {
     return (
-      <LazyScreen><CommunityFeed 
-        onExit={() => setShowCommunityFeed(false)}
+      <LazyScreen><CommunityFeed
+        onExit={() => { setShowCommunityFeed(false); setActiveTab('home'); }}
       />
       </LazyScreen>
     );
@@ -487,8 +489,8 @@ export function HomeScreen() {
   // Show profile customization screen
   if (showProfileCustomization) {
     return (
-      <LazyScreen><ProfileCustomization 
-        onExit={() => setShowProfileCustomization(false)}
+      <LazyScreen><ProfileCustomization
+        onExit={() => { setShowProfileCustomization(false); setActiveTab('home'); }}
       />
       </LazyScreen>
     );
@@ -773,8 +775,18 @@ export function HomeScreen() {
   // Show deaf community events screen
   if (showDeafCommunityEvents) {
     return (
-      <LazyScreen><DeafCommunityEvents 
+      <LazyScreen><DeafCommunityEvents
         onExit={() => setShowDeafCommunityEvents(false)}
+      />
+      </LazyScreen>
+    );
+  }
+
+  // Show achievements badges screen
+  if (showAchievementsBadges) {
+    return (
+      <LazyScreen><AchievementsBadges
+        onExit={() => setShowAchievementsBadges(false)}
       />
       </LazyScreen>
     );
@@ -1104,62 +1116,78 @@ export function HomeScreen() {
         {/* Content */}
         <div className="px-4 sm:px-6 pt-4 sm:pt-6">
           {/* Daily Progress Card */}
-          <motion.div 
-            className="rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-4 sm:mb-6"
-            style={{ background: colors.progressGradient }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            role="region"
-            aria-label="Daily progress"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h2 className="text-base sm:text-lg font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>Today's Progress</h2>
-                <p className="text-xs sm:text-sm" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)' }}>
-                  {userProgress.todayProgress} of {userProgress.dailyGoal} signs
-                </p>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
-                {Math.round((userProgress.todayProgress / userProgress.dailyGoal) * 100)}%
-              </div>
-            </div>
-            <div 
-              className="h-2 rounded-full overflow-hidden" 
-              style={{ background: theme === 'dark' ? 'rgba(15, 15, 35, 0.3)' : 'rgba(255, 255, 255, 0.3)' }}
-              role="progressbar" 
-              aria-valuenow={userProgress.todayProgress} 
-              aria-valuemin={0} 
-              aria-valuemax={userProgress.dailyGoal}
-            >
-              <motion.div 
-                className="h-full"
-                style={{ background: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}
-                initial={{ width: 0 }}
-                animate={{ width: `${(userProgress.todayProgress / userProgress.dailyGoal) * 100}%` }}
-                transition={{ duration: 1, delay: 0.3 }}
-              />
-            </div>
-            <div className="flex items-center gap-4 mt-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: theme === 'dark' ? 'rgba(15, 15, 35, 0.2)' : 'rgba(255, 255, 255, 0.2)' }}>
-                  🔥
+          {(() => {
+            const dailyPct = userProgress.dailyGoal > 0
+              ? Math.round((userProgress.todayProgress / userProgress.dailyGoal) * 100)
+              : 0;
+            return (
+              <motion.div
+                className="rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-4 sm:mb-6 cursor-pointer"
+                style={{ background: colors.progressGradient }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => setShowProgressDashboard(true)}
+                role="button"
+                aria-label="View progress dashboard"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h2 className="text-base sm:text-lg font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>Today's Progress</h2>
+                    <p className="text-xs sm:text-sm" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.8)' : 'rgba(255, 255, 255, 0.9)' }}>
+                      {userProgress.todayProgress} of {userProgress.dailyGoal} signs
+                    </p>
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-bold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>
+                    {dailyPct}%
+                  </div>
                 </div>
-                <div>
-                  <div className="font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>{userProgress.currentStreak} Days</div>
-                  <div className="text-xs" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>Current Streak</div>
+                <div
+                  className="h-2 rounded-full overflow-hidden"
+                  style={{ background: theme === 'dark' ? 'rgba(15, 15, 35, 0.3)' : 'rgba(255, 255, 255, 0.3)' }}
+                  role="progressbar"
+                  aria-valuenow={dailyPct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <motion.div
+                    className="h-full"
+                    style={{ background: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${dailyPct}%` }}
+                    transition={{ duration: 1, delay: 0.3 }}
+                  />
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: theme === 'dark' ? 'rgba(15, 15, 35, 0.2)' : 'rgba(255, 255, 255, 0.2)' }}>
-                  ✓
+                <div className="flex items-center gap-4 mt-4 text-sm">
+                  <button
+                    className="flex items-center gap-2"
+                    onClick={(e) => { e.stopPropagation(); setShowDailyStreaksRewards(true); }}
+                    aria-label="View streak rewards"
+                  >
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: theme === 'dark' ? 'rgba(15, 15, 35, 0.2)' : 'rgba(255, 255, 255, 0.2)' }}>
+                      🔥
+                    </div>
+                    <div>
+                      <div className="font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>{userProgress.currentStreak} Days</div>
+                      <div className="text-xs" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>Current Streak</div>
+                    </div>
+                  </button>
+                  <button
+                    className="flex items-center gap-2"
+                    onClick={(e) => { e.stopPropagation(); setShowDetailedAnalytics(true); }}
+                    aria-label="View detailed analytics"
+                  >
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: theme === 'dark' ? 'rgba(15, 15, 35, 0.2)' : 'rgba(255, 255, 255, 0.2)' }}>
+                      ✓
+                    </div>
+                    <div>
+                      <div className="font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>{userProgress.totalSigns} Signs</div>
+                      <div className="text-xs" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>Total Learned</div>
+                    </div>
+                  </button>
                 </div>
-                <div>
-                  <div className="font-semibold" style={{ color: theme === 'dark' ? 'var(--color-bg-deep)' : '#FFFFFF' }}>{userProgress.totalSigns} Signs</div>
-                  <div className="text-xs" style={{ color: theme === 'dark' ? 'rgba(15, 15, 35, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>Total Learned</div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+              </motion.div>
+            );
+          })()}
         </div>
 
         {/* Featured Content Carousel */}
@@ -1368,6 +1396,8 @@ export function HomeScreen() {
                   setShowVoiceToSignTranslation(true);
                 } else if (action.id === 'deaf-community-events') {
                   setShowDeafCommunityEvents(true);
+                } else if (action.id === 'achievements-badges') {
+                  setShowAchievementsBadges(true);
                 }
               };
               
@@ -1507,7 +1537,14 @@ export function HomeScreen() {
             {lessons.slice(0, 4).map((lesson, index) => (
               <motion.button
                 key={lesson.id}
-                onClick={() => setSelectedLesson(lesson.id)}
+                onClick={() => {
+                  if (lesson.isPremium && !userProgress.isPremium) {
+                    setPaywallView('comparison');
+                    setShowUpgrade(true);
+                  } else {
+                    setSelectedLesson(lesson.id);
+                  }
+                }}
                 className="w-full rounded-xl p-4 text-left transition-colors"
                 style={{ 
                   background: colors.cardBg,
