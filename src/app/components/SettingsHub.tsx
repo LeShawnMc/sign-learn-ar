@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { PrivacyPolicy } from './PrivacyPolicy';
+import { TermsOfService } from './TermsOfService';
 import { Button } from './ui/button';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
@@ -68,24 +70,52 @@ export function SettingsHub({
   const { userProgress, selectedLanguage } = useApp();
   const { logout, user, mode } = useAuth();
 
-  // App Preferences State
-  const [autoPlayVideos, setAutoPlayVideos] = useState(true);
-  const [hapticFeedback, setHapticFeedback] = useState(true);
-  const [downloadOverWiFiOnly, setDownloadOverWiFiOnly] = useState(true);
-  const [autoSaveProgress, setAutoSaveProgress] = useState(true);
-  const [showSubtitles, setShowSubtitles] = useState(true);
-  const [practiceReminders, setPracticeReminders] = useState(true);
+  // Load persisted settings once
+  const saved = (() => {
+    try { return JSON.parse(localStorage.getItem('signlearn-settings') ?? '{}'); }
+    catch { return {}; }
+  })();
 
-  // Display Options State
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [highContrast, setHighContrast] = useState(false);
-  const [largeFonts, setLargeFonts] = useState(false);
-  const [showProgressBars, setShowProgressBars] = useState(true);
+  // App Preferences State (persisted)
+  const [autoPlayVideos,      setAutoPlayVideos]      = useState<boolean>(saved.autoPlayVideos      ?? true);
+  const [hapticFeedback,      setHapticFeedback]      = useState<boolean>(saved.hapticFeedback      ?? true);
+  const [downloadOverWiFiOnly,setDownloadOverWiFiOnly]= useState<boolean>(saved.downloadOverWiFiOnly?? true);
+  const [autoSaveProgress,    setAutoSaveProgress]    = useState<boolean>(saved.autoSaveProgress    ?? true);
+  const [showSubtitles,       setShowSubtitles]       = useState<boolean>(saved.showSubtitles       ?? true);
+  const [practiceReminders,   setPracticeReminders]   = useState<boolean>(saved.practiceReminders   ?? true);
 
-  // Privacy State
-  const [dataSharingEnabled, setDataSharingEnabled] = useState(false);
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
-  const [personalizationEnabled, setPersonalizationEnabled] = useState(true);
+  // Display Options State (persisted)
+  const [reducedMotion,    setReducedMotion]    = useState<boolean>(saved.reducedMotion    ?? false);
+  const [highContrast,     setHighContrast]     = useState<boolean>(saved.highContrast     ?? false);
+  const [largeFonts,       setLargeFonts]       = useState<boolean>(saved.largeFonts       ?? false);
+  const [showProgressBars, setShowProgressBars] = useState<boolean>(saved.showProgressBars ?? true);
+
+  // Privacy State (persisted)
+  const [dataSharingEnabled,     setDataSharingEnabled]     = useState<boolean>(saved.dataSharingEnabled     ?? false);
+  const [analyticsEnabled,       setAnalyticsEnabled]       = useState<boolean>(saved.analyticsEnabled       ?? true);
+  const [personalizationEnabled, setPersonalizationEnabled] = useState<boolean>(saved.personalizationEnabled ?? true);
+
+  // UI feedback states
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [exportStatus,      setExportStatus]      = useState<'idle'|'exporting'|'done'>('idle');
+  const [clearCacheStatus,  setClearCacheStatus]  = useState<'idle'|'clearing'|'done'>('idle');
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfService,setShowTermsOfService]= useState(false);
+
+  // Persist all preference toggles to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('signlearn-settings', JSON.stringify({
+        autoPlayVideos, hapticFeedback, downloadOverWiFiOnly, autoSaveProgress,
+        showSubtitles, practiceReminders, reducedMotion, highContrast, largeFonts,
+        showProgressBars, dataSharingEnabled, analyticsEnabled, personalizationEnabled,
+      }));
+    } catch { /* quota */ }
+  }, [
+    autoPlayVideos, hapticFeedback, downloadOverWiFiOnly, autoSaveProgress,
+    showSubtitles, practiceReminders, reducedMotion, highContrast, largeFonts,
+    showProgressBars, dataSharingEnabled, analyticsEnabled, personalizationEnabled,
+  ]);
 
   // Theme-aware colors
   const colors = theme === 'dark'
@@ -134,30 +164,95 @@ export function SettingsHub({
         glassBorder: '1px solid rgba(255, 255, 255, 0.6)',
       };
 
-  const handleLogout = () => {
+  const handleLogout = () => logout();
+
+  const handleDeleteAccount = () => setShowDeleteConfirm(true);
+
+  const handleConfirmDelete = () => {
+    // Clear all local data then sign out
+    try { localStorage.clear(); } catch { /* ignore */ }
+    try { sessionStorage.clear(); } catch { /* ignore */ }
+    setShowDeleteConfirm(false);
     logout();
   };
 
-  const handleDeleteAccount = () => {
-    // Simulate account deletion
-    confirm('Are you sure you want to delete your account? This action cannot be undone.');
-  };
-
   const handleExportData = () => {
-    // Simulate data export
+    setExportStatus('exporting');
+    const payload = {
+      exportDate: new Date().toISOString(),
+      user: { email: user?.email ?? 'guest', mode },
+      selectedLanguage,
+      progress: userProgress,
+      preferences: {
+        autoPlayVideos, showSubtitles, hapticFeedback, practiceReminders,
+        reducedMotion, highContrast, largeFonts, showProgressBars,
+        downloadOverWiFiOnly, autoSaveProgress,
+        analyticsEnabled, personalizationEnabled, dataSharingEnabled,
+      },
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `sign-learn-ar-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExportStatus('done');
+    setTimeout(() => setExportStatus('idle'), 3000);
   };
 
   const handleClearCache = () => {
-    // Simulate clearing cache
+    setClearCacheStatus('clearing');
+    // Remove app-specific cached keys but preserve auth session
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('signlearn') && k !== 'signlearn-profile')
+      .forEach(k => { try { localStorage.removeItem(k); } catch { /* ignore */ } });
+    try { sessionStorage.clear(); } catch { /* ignore */ }
+    setClearCacheStatus('done');
+    setTimeout(() => setClearCacheStatus('idle'), 2500);
   };
 
+  // Internal screen navigation
+  if (showPrivacyPolicy)  return <PrivacyPolicy  onBack={() => setShowPrivacyPolicy(false)} />;
+  if (showTermsOfService) return <TermsOfService onBack={() => setShowTermsOfService(false)} />;
+
   return (
-    <div 
+    <div
       className="h-full flex flex-col"
       style={{ background: colors.bg, color: colors.textPrimary }}
       role="main"
       aria-labelledby="settings-hub-title"
     >
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="rounded-2xl p-6 max-w-sm w-full" style={{ background: colors.cardBg, border: `2px solid ${colors.errorColor}` }}>
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: colors.errorBg }}>
+              <Trash2 className="w-7 h-7" style={{ color: colors.errorColor }} />
+            </div>
+            <h2 className="text-lg font-bold text-center mb-2" style={{ color: colors.textPrimary }}>Delete Account?</h2>
+            <p className="text-sm text-center mb-6" style={{ color: colors.textSecondary }}>
+              This will permanently delete your account, all progress, and local data. This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 h-11 rounded-full font-semibold text-sm"
+                style={{ background: colors.cardHover, color: colors.textPrimary }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="flex-1 h-11 rounded-full font-semibold text-sm text-white"
+                style={{ background: colors.errorColor }}
+              >
+                Delete Forever
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div 
         className="p-4 sm:p-6 border-b"
@@ -752,6 +847,32 @@ export function SettingsHub({
                 </button>
               </div>
 
+              {/* Large Fonts */}
+              <div className="flex items-center justify-between p-4 rounded-lg mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: colors.iconBg }} aria-hidden="true">
+                    <Filter className="w-5 h-5" style={{ color: colors.iconColor }} />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>Large Fonts</div>
+                    <div className="text-xs" style={{ color: colors.textSecondary }}>Increase text size throughout the app</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setLargeFonts(!largeFonts)}
+                  className="relative w-12 h-6 rounded-full transition-colors"
+                  style={{ background: largeFonts ? colors.iconColor : colors.border }}
+                  role="switch"
+                  aria-checked={largeFonts}
+                  aria-label="Toggle large fonts"
+                >
+                  <div
+                    className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform"
+                    style={{ transform: largeFonts ? 'translateX(24px)' : 'translateX(0)' }}
+                  />
+                </button>
+              </div>
+
               {/* Show Progress Bars */}
               <div className="flex items-center justify-between p-4 rounded-lg">
                 <div className="flex items-center gap-3">
@@ -1003,26 +1124,27 @@ export function SettingsHub({
               {/* Export Data */}
               <button
                 onClick={handleExportData}
+                disabled={exportStatus === 'exporting'}
                 className="w-full flex items-center justify-between p-4 rounded-lg transition-all mb-2"
-                style={{ background: 'transparent' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = colors.cardHover}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                aria-label="Export your data"
+                style={{ background: exportStatus === 'done' ? colors.successBg : 'transparent', opacity: exportStatus === 'exporting' ? 0.6 : 1 }}
+                onMouseEnter={(e) => { if (exportStatus === 'idle') e.currentTarget.style.background = colors.cardHover; }}
+                onMouseLeave={(e) => { if (exportStatus === 'idle') e.currentTarget.style.background = 'transparent'; }}
+                aria-label="Export your data as JSON"
               >
                 <div className="flex items-center gap-3">
-                  <div 
+                  <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: colors.iconBg }}
+                    style={{ background: exportStatus === 'done' ? colors.successBg : colors.iconBg }}
                     aria-hidden="true"
                   >
-                    <Download className="w-5 h-5" style={{ color: colors.iconColor }} />
+                    <Download className="w-5 h-5" style={{ color: exportStatus === 'done' ? colors.successColor : colors.iconColor }} />
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                      Export My Data
+                    <div className="font-semibold text-sm" style={{ color: exportStatus === 'done' ? colors.successColor : colors.textPrimary }}>
+                      {exportStatus === 'exporting' ? 'Preparing…' : exportStatus === 'done' ? '✓ Download Started!' : 'Export My Data'}
                     </div>
                     <div className="text-xs" style={{ color: colors.textSecondary }}>
-                      Download all your learning data
+                      Download all your learning data as JSON
                     </div>
                   </div>
                 </div>
@@ -1032,23 +1154,24 @@ export function SettingsHub({
               {/* Clear Cache */}
               <button
                 onClick={handleClearCache}
+                disabled={clearCacheStatus !== 'idle'}
                 className="w-full flex items-center justify-between p-4 rounded-lg transition-all"
-                style={{ background: 'transparent' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = colors.cardHover}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                style={{ background: clearCacheStatus === 'done' ? colors.successBg : 'transparent', opacity: clearCacheStatus === 'clearing' ? 0.6 : 1 }}
+                onMouseEnter={(e) => { if (clearCacheStatus === 'idle') e.currentTarget.style.background = colors.cardHover; }}
+                onMouseLeave={(e) => { if (clearCacheStatus === 'idle') e.currentTarget.style.background = 'transparent'; }}
                 aria-label="Clear app cache"
               >
                 <div className="flex items-center gap-3">
-                  <div 
+                  <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: colors.warningBg }}
+                    style={{ background: clearCacheStatus === 'done' ? colors.successBg : colors.warningBg }}
                     aria-hidden="true"
                   >
-                    <Trash2 className="w-5 h-5" style={{ color: colors.warningColor }} />
+                    <Trash2 className="w-5 h-5" style={{ color: clearCacheStatus === 'done' ? colors.successColor : colors.warningColor }} />
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                      Clear Cache
+                    <div className="font-semibold text-sm" style={{ color: clearCacheStatus === 'done' ? colors.successColor : colors.textPrimary }}>
+                      {clearCacheStatus === 'clearing' ? 'Clearing…' : clearCacheStatus === 'done' ? '✓ Cache Cleared!' : 'Clear Cache'}
                     </div>
                     <div className="text-xs" style={{ color: colors.textSecondary }}>
                       Free up storage space
@@ -1184,104 +1307,72 @@ export function SettingsHub({
 
               {/* Privacy Policy */}
               <button
-                onClick={() => window.open('https://signlearnar.com/privacy', '_blank')}
+                onClick={() => setShowPrivacyPolicy(true)}
                 className="w-full flex items-center justify-between p-4 rounded-lg transition-all mb-2"
                 style={{ background: 'transparent' }}
                 onMouseEnter={(e) => e.currentTarget.style.background = colors.cardHover}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                aria-label="View privacy policy (opens in new tab)"
+                aria-label="View privacy policy"
               >
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: colors.iconBg }}
-                    aria-hidden="true"
-                  >
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: colors.iconBg }} aria-hidden="true">
                     <Shield className="w-5 h-5" style={{ color: colors.iconColor }} />
                   </div>
-                  <div className="text-left">
-                    <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                      Privacy Policy
-                    </div>
-                  </div>
+                  <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>Privacy Policy</div>
                 </div>
                 <ChevronRight className="w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
               </button>
 
               {/* Terms of Service */}
               <button
-                onClick={() => window.open('https://signlearnar.com/terms', '_blank')}
+                onClick={() => setShowTermsOfService(true)}
                 className="w-full flex items-center justify-between p-4 rounded-lg transition-all mb-2"
                 style={{ background: 'transparent' }}
                 onMouseEnter={(e) => e.currentTarget.style.background = colors.cardHover}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                aria-label="View terms of service (opens in new tab)"
+                aria-label="View terms of service"
               >
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: colors.iconBg }}
-                    aria-hidden="true"
-                  >
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: colors.iconBg }} aria-hidden="true">
                     <FileText className="w-5 h-5" style={{ color: colors.iconColor }} />
                   </div>
-                  <div className="text-left">
-                    <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                      Terms of Service
-                    </div>
-                  </div>
+                  <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>Terms of Service</div>
                 </div>
                 <ChevronRight className="w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
               </button>
 
               {/* Licenses */}
               <button
-                onClick={() => window.open('https://signlearnar.com/licenses', '_blank')}
+                onClick={() => window.open('https://github.com/LeShawnMc/sign-learn-ar/blob/main/LICENSE', '_blank', 'noopener')}
                 className="w-full flex items-center justify-between p-4 rounded-lg transition-all mb-2"
                 style={{ background: 'transparent' }}
                 onMouseEnter={(e) => e.currentTarget.style.background = colors.cardHover}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                aria-label="View open source licenses (opens in new tab)"
+                aria-label="View open source licenses on GitHub"
               >
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: colors.iconBg }}
-                    aria-hidden="true"
-                  >
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: colors.iconBg }} aria-hidden="true">
                     <FileText className="w-5 h-5" style={{ color: colors.iconColor }} />
                   </div>
-                  <div className="text-left">
-                    <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                      Open Source Licenses
-                    </div>
-                  </div>
+                  <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>Open Source Licenses</div>
                 </div>
                 <ChevronRight className="w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
               </button>
 
               {/* Acknowledgements */}
               <button
-                onClick={() => window.open('https://signlearnar.com/acknowledgements', '_blank')}
+                onClick={() => window.open('https://github.com/LeShawnMc/sign-learn-ar#acknowledgements', '_blank', 'noopener')}
                 className="w-full flex items-center justify-between p-4 rounded-lg transition-all"
                 style={{ background: 'transparent' }}
                 onMouseEnter={(e) => e.currentTarget.style.background = colors.cardHover}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                aria-label="View acknowledgements (opens in new tab)"
+                aria-label="View acknowledgements on GitHub"
               >
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: colors.iconBg }}
-                    aria-hidden="true"
-                  >
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: colors.iconBg }} aria-hidden="true">
                     <Info className="w-5 h-5" style={{ color: colors.iconColor }} />
                   </div>
-                  <div className="text-left">
-                    <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>
-                      Acknowledgements
-                    </div>
-                  </div>
+                  <div className="font-semibold text-sm" style={{ color: colors.textPrimary }}>Acknowledgements</div>
                 </div>
                 <ChevronRight className="w-5 h-5" style={{ color: colors.textTertiary }} aria-hidden="true" />
               </button>
