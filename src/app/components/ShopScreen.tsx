@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
-type ShopView = 
+type ShopView =
   | 'main'
   | 'avatars'
   | 'lesson-packs'
@@ -36,7 +36,8 @@ type ShopView =
   | 'scenarios'
   | 'power-ups'
   | 'purchase-history'
-  | 'item-detail';
+  | 'item-detail'
+  | 'get-coins';
 
 interface ShopItem {
   id: string;
@@ -70,13 +71,32 @@ interface ShopScreenProps {
 }
 
 export function ShopScreen({ onExit }: ShopScreenProps) {
-  const { selectedLanguage } = useApp();
+  useApp(); // keep context alive for future wiring
   const [currentView, setCurrentView] = useState<ShopView>('main');
+  const [previousView, setPreviousView] = useState<ShopView>('main');
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [userCoins, setUserCoins] = useState(2450);
-  const [cart, setCart] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
+  // Items owned by the user (pre-populated from items with owned:true)
+  const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set(['avatar-5', 'theme-1', 'scene-3']));
+  const [wishlisted, setWishlisted] = useState<Set<string>>(new Set());
+  const [purchaseResult, setPurchaseResult] = useState<{ item: ShopItem; success: boolean; requiresPremium?: boolean } | null>(null);
+  const [dealTimeLeft, setDealTimeLeft] = useState('');
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const midnight = new Date(); midnight.setHours(24, 0, 0, 0);
+      const diff = midnight.getTime() - now.getTime();
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setDealTimeLeft(`${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`);
+    };
+    update();
+    const t = setInterval(update, 1000);
+    return () => clearInterval(t);
+  }, []);
 
   // Avatar customization items
   const avatarItems: ShopItem[] = [
@@ -460,75 +480,79 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
     },
   ];
 
-  // Purchase history
-  const purchaseHistory: PurchaseHistoryItem[] = [
-    {
-      id: 'purchase-1',
-      date: '2024-01-08',
-      itemName: 'Fire Frame',
-      price: 300,
-      currency: 'coins',
-      category: 'avatar',
-    },
-    {
-      id: 'purchase-2',
-      date: '2024-01-05',
-      itemName: 'Double XP Boost',
-      price: 100,
-      currency: 'coins',
-      category: 'power-up',
-    },
-    {
-      id: 'purchase-3',
-      date: '2023-12-28',
-      itemName: 'Classroom Setting',
-      price: 150,
-      currency: 'coins',
-      category: 'scene',
-    },
-    {
-      id: 'purchase-4',
-      date: '2023-12-20',
-      itemName: 'Dark Mode Premium',
-      price: 100,
-      currency: 'coins',
-      category: 'theme',
-    },
-    {
-      id: 'purchase-5',
-      date: '2023-12-15',
-      itemName: 'Streak Freeze',
-      price: 50,
-      currency: 'coins',
-      category: 'power-up',
-    },
-  ];
+  // Purchase history (state so new purchases append)
+  const [purchaseHistory, setPurchaseHistory] = useState<PurchaseHistoryItem[]>([
+    { id: 'purchase-1', date: 'Jan 8, 2024',  itemName: 'Fire Frame',        price: 300, currency: 'coins', category: 'avatar' },
+    { id: 'purchase-2', date: 'Jan 5, 2024',  itemName: 'Double XP Boost',   price: 100, currency: 'coins', category: 'power-up' },
+    { id: 'purchase-3', date: 'Dec 28, 2023', itemName: 'Classroom Setting',  price: 150, currency: 'coins', category: 'scene' },
+    { id: 'purchase-4', date: 'Dec 20, 2023', itemName: 'Dark Mode Premium',  price: 100, currency: 'coins', category: 'theme' },
+    { id: 'purchase-5', date: 'Dec 15, 2023', itemName: 'Streak Freeze',      price: 50,  currency: 'coins', category: 'power-up' },
+  ]);
 
   const allItems = [
-    ...avatarItems,
-    ...lessonPacks,
-    ...themePacks,
-    ...sceneThemes,
-    ...scenarioPacks,
-    ...powerUpItems,
+    ...avatarItems, ...lessonPacks, ...themePacks,
+    ...sceneThemes, ...scenarioPacks, ...powerUpItems,
   ];
 
   const featuredItems = allItems.filter(item => item.featured);
-  const dailyDeals = allItems.filter(item => item.dailyDeal);
+  const dailyDeals    = allItems.filter(item => item.dailyDeal);
+
+  const totalSpentCoins = purchaseHistory
+    .filter(p => p.currency === 'coins')
+    .reduce((sum, p) => sum + p.price, 0);
 
   const handlePurchase = (item: ShopItem) => {
-    if (item.currency === 'coins' && userCoins >= item.price) {
-      setUserCoins(prev => prev - item.price);
-      // Mark item as owned
-      const updatedItems = allItems.map(i => 
-        i.id === item.id ? { ...i, owned: true } : i
-      );
-      alert(`Successfully purchased ${item.name}!`);
-    } else if (item.currency === 'premium') {
-      alert('Premium currency purchase requires premium subscription');
-    } else {
-      alert('Not enough coins!');
+    if (item.currency === 'premium') {
+      setPurchaseResult({ item, success: false, requiresPremium: true });
+      return;
     }
+    if (userCoins < item.price) {
+      setPurchaseResult({ item, success: false });
+      return;
+    }
+    setUserCoins(prev => prev - item.price);
+    setOwnedIds(prev => new Set([...prev, item.id]));
+    setPurchaseHistory(prev => [{
+      id: `ph-${Date.now()}`,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      itemName: item.name,
+      price: item.price,
+      currency: 'coins' as const,
+      category: item.category,
+    }, ...prev]);
+    setPurchaseResult({ item, success: true });
+  };
+
+  const handleDownloadReceipt = (purchase: PurchaseHistoryItem) => {
+    const lines = [
+      'SIGN LEARN AR — PURCHASE RECEIPT',
+      '─'.repeat(38),
+      `Item:      ${purchase.itemName}`,
+      `Category:  ${purchase.category}`,
+      `Date:      ${purchase.date}`,
+      `Amount:    ${purchase.price} ${purchase.currency === 'coins' ? 'Coins' : 'Premium Gems'}`,
+      `Order ID:  ${purchase.id}`,
+      '─'.repeat(38),
+      'Thank you for your purchase! 🤟',
+    ].join('\n');
+    const blob = new Blob([lines], { type: 'text/plain' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `receipt-${purchase.id}.txt`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const toggleWishlist = (id: string) =>
+    setWishlisted(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
+      return next;
+    });
+
+  const openItemDetail = (item: ShopItem) => {
+    setPreviousView(currentView as ShopView);
+    setSelectedItem(item);
+    setCurrentView('item-detail');
   };
 
   const getCategoryIcon = (category: string) => {
@@ -543,96 +567,137 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
     }
   };
 
-  const renderItemCard = (item: ShopItem, index: number = 0) => (
-    <motion.div
-      key={item.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="bg-gray-900 rounded-xl overflow-hidden"
-    >
-      {/* Item preview/icon */}
-      <div 
-        className="h-32 flex items-center justify-center text-6xl relative"
-        style={item.preview ? { backgroundColor: item.preview + '20' } : { backgroundColor: '#1f2937' }}
-        aria-hidden="true"
+  const renderItemCard = (item: ShopItem, index: number = 0) => {
+    const isOwned = ownedIds.has(item.id);
+    return (
+      <motion.div
+        key={item.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.05 }}
+        className="bg-gray-900 rounded-xl overflow-hidden"
       >
-        {item.icon}
-        {item.newItem && (
-          <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
-            New
-          </div>
-        )}
-        {item.popular && (
-          <div className="absolute top-2 left-2 bg-yellow-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex items-center gap-1">
-            <Star className="w-3 h-3" />
-            Popular
-          </div>
-        )}
-        {item.owned && (
-          <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex items-center gap-1">
-            <Check className="w-3 h-3" />
-            Owned
-          </div>
-        )}
-        {item.dailyDeal && item.discount && (
-          <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
-            -{item.discount}%
-          </div>
-        )}
-      </div>
-
-      {/* Item info */}
-      <div className="p-4">
-        <h3 className="font-semibold mb-1 line-clamp-1">{item.name}</h3>
-        <p className="text-xs text-gray-400 mb-3 line-clamp-2">{item.description}</p>
-
-        <div className="flex items-center justify-between">
-          <div>
-            {item.dailyDeal && item.originalPrice ? (
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-green-500">
-                  {item.currency === 'coins' ? `${item.price} 🪙` : `${item.price} 💎`}
-                </span>
-                <span className="text-sm text-gray-500 line-through">
-                  {item.originalPrice}
-                </span>
-              </div>
-            ) : (
-              <div className="text-lg font-bold">
-                {item.currency === 'coins' ? `${item.price} 🪙` : `${item.price} 💎`}
-              </div>
-            )}
-          </div>
-          <Button
-            onClick={() => {
-              setSelectedItem(item);
-              setCurrentView('item-detail');
-            }}
-            size="sm"
-            className={`${
-              item.owned 
-                ? 'bg-gray-700 text-gray-400 cursor-default'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-            disabled={item.owned}
-            aria-label={item.owned ? `${item.name} - Already owned` : `View details for ${item.name}`}
-          >
-            {item.owned ? 'Owned' : 'View'}
-          </Button>
+        <div
+          className="h-32 flex items-center justify-center text-6xl relative"
+          style={item.preview ? { backgroundColor: item.preview + '20' } : { backgroundColor: '#1f2937' }}
+          aria-hidden="true"
+        >
+          {item.icon}
+          {item.newItem && !isOwned && (
+            <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full font-semibold">New</div>
+          )}
+          {item.popular && !item.newItem && (
+            <div className="absolute top-2 left-2 bg-yellow-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex items-center gap-1">
+              <Star className="w-3 h-3" />Popular
+            </div>
+          )}
+          {isOwned && (
+            <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex items-center gap-1">
+              <Check className="w-3 h-3" />Owned
+            </div>
+          )}
+          {item.dailyDeal && item.discount && (
+            <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
+              -{item.discount}%
+            </div>
+          )}
         </div>
-      </div>
+
+        <div className="p-4">
+          <h3 className="font-semibold mb-1 line-clamp-1">{item.name}</h3>
+          <p className="text-xs text-gray-400 mb-3 line-clamp-2">{item.description}</p>
+          <div className="flex items-center justify-between">
+            <div>
+              {item.dailyDeal && item.originalPrice ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-green-500">
+                    {item.currency === 'coins' ? `${item.price} 🪙` : `${item.price} 💎`}
+                  </span>
+                  <span className="text-sm text-gray-500 line-through">{item.originalPrice}</span>
+                </div>
+              ) : (
+                <div className="text-lg font-bold">
+                  {item.currency === 'coins' ? `${item.price} 🪙` : `${item.price} 💎`}
+                </div>
+              )}
+            </div>
+            <Button
+              onClick={() => openItemDetail(item)}
+              size="sm"
+              className={isOwned ? 'bg-gray-700 text-gray-400 cursor-default' : 'bg-blue-600 hover:bg-blue-700'}
+              disabled={isOwned}
+              aria-label={isOwned ? `${item.name} — Already owned` : `View details for ${item.name}`}
+            >
+              {isOwned ? 'Owned' : 'View'}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // ── Purchase Result Modal (shown over any view) ──────────────────────────────
+  const PurchaseModal = purchaseResult ? (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ background: 'rgba(0,0,0,0.85)' }}
+    >
+      <motion.div
+        initial={{ scale: 0.85, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className={`bg-gray-900 rounded-2xl p-8 max-w-sm w-full text-center border-2 ${purchaseResult.success ? 'border-blue-500' : 'border-red-500'}`}
+      >
+        {purchaseResult.success ? (
+          <>
+            <div className="text-7xl mb-4">{purchaseResult.item.icon}</div>
+            <h2 className="text-xl font-bold mb-2">Purchase Successful! 🎉</h2>
+            <p className="text-gray-400 mb-6">{purchaseResult.item.name} has been added to your collection.</p>
+            <Button onClick={() => setPurchaseResult(null)} className="w-full h-12 bg-blue-600 hover:bg-blue-700 rounded-full font-semibold">
+              Awesome!
+            </Button>
+          </>
+        ) : purchaseResult.requiresPremium ? (
+          <>
+            <div className="text-6xl mb-4">💎</div>
+            <h2 className="text-xl font-bold mb-2">Premium Required</h2>
+            <p className="text-gray-400 mb-6">This item requires Premium Gems. Upgrade to unlock gem purchases.</p>
+            <div className="space-y-2">
+              <Button onClick={() => { setPurchaseResult(null); onExit(); }} className="w-full h-12 bg-yellow-600 hover:bg-yellow-700 rounded-full font-semibold">
+                View Premium Plans
+              </Button>
+              <Button onClick={() => setPurchaseResult(null)} variant="ghost" className="w-full text-gray-400">Cancel</Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-6xl mb-4">🪙</div>
+            <h2 className="text-xl font-bold mb-2">Not Enough Coins</h2>
+            <p className="text-gray-400 mb-6">
+              You need {purchaseResult.item.price} coins but only have {userCoins.toLocaleString()}. Get more coins to continue.
+            </p>
+            <div className="space-y-2">
+              <Button onClick={() => { setPurchaseResult(null); setCurrentView('get-coins'); }} className="w-full h-12 bg-yellow-600 hover:bg-yellow-700 rounded-full font-semibold">
+                Get More Coins
+              </Button>
+              <Button onClick={() => setPurchaseResult(null)} variant="ghost" className="w-full text-gray-400">Cancel</Button>
+            </div>
+          </>
+        )}
+      </motion.div>
     </motion.div>
-  );
+  ) : null;
 
   // Main Shop Screen
   if (currentView === 'main') {
     return (
-      <div 
+      <div
         className="min-h-screen bg-black text-white flex flex-col"
         role="main"
         aria-labelledby="shop-title"
       >
+        {PurchaseModal}
         {/* Header */}
         <div className="p-6 pb-4">
           <div className="flex items-center justify-between mb-4">
@@ -660,6 +725,7 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
               </div>
               <Button
                 size="sm"
+                onClick={() => setCurrentView('get-coins')}
                 className="bg-white text-yellow-800 hover:bg-gray-100 font-semibold"
                 aria-label="Get more coins"
               >
@@ -686,7 +752,7 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
               <h2 className="text-lg font-semibold">Daily Deals</h2>
               <div className="flex items-center gap-1 text-sm text-gray-400">
                 <Clock className="w-4 h-4" />
-                <span>Ends in 18h</span>
+                <span aria-live="polite">{dealTimeLeft || '...'}</span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -779,44 +845,60 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
         break;
     }
 
+    const filteredItems = searchQuery
+      ? categoryItems.filter(i =>
+          i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          i.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      : categoryItems;
+
     return (
-      <div 
-        className="min-h-screen bg-black text-white flex flex-col"
-        role="main"
-        aria-labelledby="category-title"
-      >
+      <div className="min-h-screen bg-black text-white flex flex-col" role="main" aria-labelledby="category-title">
+        {PurchaseModal}
         {/* Header */}
         <div className="p-6 pb-4">
           <div className="flex items-center gap-4 mb-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentView('main')}
-              className="w-10 h-10 rounded-full hover:bg-gray-900"
-              aria-label="Back to shop"
-            >
+            <Button variant="ghost" size="icon" onClick={() => { setSearchQuery(''); setCurrentView('main'); }} className="w-10 h-10 rounded-full hover:bg-gray-900" aria-label="Back to shop">
               <X className="w-5 h-5" />
             </Button>
-            <h1 id="category-title" className="text-xl font-bold">{categoryTitle}</h1>
+            <h1 id="category-title" className="text-xl font-bold flex-1">{categoryTitle}</h1>
+            <div className="text-sm text-gray-400">{filteredItems.length} items</div>
           </div>
 
-          {/* Currency Balance */}
-          <div className="bg-gray-900 rounded-xl p-3 flex items-center justify-between">
+          {/* Balance + Search */}
+          <div className="bg-gray-900 rounded-xl p-3 flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="text-2xl" aria-hidden="true">🪙</div>
               <div>
-                <div className="text-xs text-gray-400">Your Balance</div>
+                <div className="text-xs text-gray-400">Balance</div>
                 <div className="text-lg font-bold">{userCoins.toLocaleString()}</div>
               </div>
             </div>
+            <Button size="sm" onClick={() => setCurrentView('get-coins')} className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs">+ Get More</Button>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text" value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder={`Search ${categoryTitle.toLowerCase()}…`}
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              aria-label="Search items"
+            />
           </div>
         </div>
 
         {/* Items Grid */}
         <div className="flex-1 px-6 pb-6 overflow-y-auto">
-          <div className="grid grid-cols-2 gap-3">
-            {categoryItems.map((item, index) => renderItemCard(item, index))}
-          </div>
+          {filteredItems.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {filteredItems.map((item, index) => renderItemCard(item, index))}
+            </div>
+          ) : (
+            <div className="text-center py-16 text-gray-500">
+              <Search className="w-10 h-10 mx-auto mb-3 opacity-40" />
+              <p>No items match "{searchQuery}"</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -824,31 +906,24 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
 
   // Item Detail View
   if (currentView === 'item-detail' && selectedItem) {
+    const isOwned     = ownedIds.has(selectedItem.id);
+    const isWishlisted = wishlisted.has(selectedItem.id);
     return (
-      <div 
-        className="min-h-screen bg-black text-white flex flex-col"
-        role="main"
-        aria-labelledby="item-title"
-      >
+      <div className="min-h-screen bg-black text-white flex flex-col" role="main" aria-labelledby="item-title">
+        {PurchaseModal}
         {/* Header */}
         <div className="p-6 pb-4">
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentView('main')}
-              className="w-10 h-10 rounded-full hover:bg-gray-900"
-              aria-label="Back to shop"
-            >
+            <Button variant="ghost" size="icon" onClick={() => setCurrentView(previousView)} className="w-10 h-10 rounded-full hover:bg-gray-900" aria-label="Back">
               <X className="w-5 h-5" />
             </Button>
             <Button
-              variant="ghost"
-              size="icon"
+              variant="ghost" size="icon"
+              onClick={() => toggleWishlist(selectedItem.id)}
               className="w-10 h-10 rounded-full hover:bg-gray-900"
-              aria-label="Add to wishlist"
+              aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             >
-              <Heart className="w-5 h-5" />
+              <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} />
             </Button>
           </div>
         </div>
@@ -1047,16 +1122,12 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
               )}
             </div>
             <Button
-              onClick={() => handlePurchase(selectedItem)}
-              disabled={selectedItem.owned}
-              className={`h-14 px-8 rounded-full font-semibold text-lg ${
-                selectedItem.owned 
-                  ? 'bg-gray-700 text-gray-400'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-              aria-label={selectedItem.owned ? 'Already owned' : `Purchase ${selectedItem.name}`}
+              onClick={() => !isOwned && handlePurchase(selectedItem)}
+              disabled={isOwned}
+              className={`h-14 px-8 rounded-full font-semibold text-lg ${isOwned ? 'bg-gray-700 text-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+              aria-label={isOwned ? 'Already owned' : `Purchase ${selectedItem.name}`}
             >
-              {selectedItem.owned ? 'Owned' : 'Purchase'}
+              {isOwned ? '✓ Owned' : 'Purchase'}
             </Button>
           </div>
         </div>
@@ -1064,10 +1135,75 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
     );
   }
 
+  // ── Get Coins View ────────────────────────────────────────────────────────────
+  if (currentView === 'get-coins') {
+    const coinPacks = [
+      { id: 'coins-500',  amount: 500,  bonus: 0,    price: '$0.99', popular: false },
+      { id: 'coins-1200', amount: 1200, bonus: 200,  price: '$1.99', popular: true  },
+      { id: 'coins-3000', amount: 3000, bonus: 1000, price: '$3.99', popular: false },
+      { id: 'coins-7000', amount: 7000, bonus: 3000, price: '$7.99', popular: false },
+    ];
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col" role="main" aria-labelledby="coins-title">
+        <div className="p-6 pb-4">
+          <div className="flex items-center gap-4 mb-4">
+            <Button variant="ghost" size="icon" onClick={() => setCurrentView('main')} className="w-10 h-10 rounded-full hover:bg-gray-900" aria-label="Back to shop">
+              <X className="w-5 h-5" />
+            </Button>
+            <h1 id="coins-title" className="text-xl font-bold">Get Coins</h1>
+          </div>
+          <div className="bg-gradient-to-br from-yellow-600 to-yellow-800 rounded-xl p-4 flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">🪙</div>
+              <div>
+                <div className="text-sm opacity-90">Current Balance</div>
+                <div className="text-2xl font-bold">{userCoins.toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {coinPacks.map(pack => (
+              <motion.button
+                key={pack.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => {
+                  setUserCoins(prev => prev + pack.amount + pack.bonus);
+                  setPurchaseResult({
+                    item: { id: pack.id, name: `${(pack.amount + pack.bonus).toLocaleString()} Coins`, description: '', price: 0, currency: 'coins', category: 'coins', icon: '🪙' },
+                    success: true,
+                  });
+                }}
+                className={`w-full rounded-xl p-4 flex items-center justify-between hover:opacity-90 transition-opacity ${pack.popular ? 'bg-gradient-to-r from-blue-600 to-blue-800 border-2 border-blue-400' : 'bg-gray-900'}`}
+                aria-label={`Buy ${pack.amount + pack.bonus} coins for ${pack.price}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="text-3xl">🪙</div>
+                  <div className="text-left">
+                    <div className="font-bold">{pack.amount.toLocaleString()} Coins</div>
+                    {pack.bonus > 0 && <div className="text-xs text-green-400">+{pack.bonus.toLocaleString()} bonus coins!</div>}
+                  </div>
+                </div>
+                <div className="text-right">
+                  {pack.popular && <div className="text-xs text-yellow-400 font-semibold mb-1">Best Value</div>}
+                  <div className="text-lg font-bold">{pack.price}</div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+          <p className="text-center text-xs text-gray-500 mt-6">
+            Coins are used for avatar frames, themes, AR scenes, and power-ups.
+          </p>
+        </div>
+        {PurchaseModal}
+      </div>
+    );
+  }
+
   // Purchase History
   if (currentView === 'purchase-history') {
     return (
-      <div 
+      <div
         className="min-h-screen bg-black text-white flex flex-col"
         role="main"
         aria-labelledby="history-title"
@@ -1095,7 +1231,7 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
             </div>
             <div>
               <div className="text-sm text-gray-400 mb-1">Total Spent</div>
-              <div className="text-2xl font-bold">700 🪙</div>
+              <div className="text-2xl font-bold">{totalSpentCoins.toLocaleString()} 🪙</div>
             </div>
           </div>
         </div>
@@ -1126,6 +1262,7 @@ export function ShopScreen({ onExit }: ShopScreenProps) {
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => handleDownloadReceipt(purchase)}
                   className="text-blue-500 hover:text-blue-400 h-auto p-0"
                   aria-label={`Download receipt for ${purchase.itemName}`}
                 >
